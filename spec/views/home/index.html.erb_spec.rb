@@ -12,5 +12,17 @@ RSpec.describe "home/index.html.erb", type: :view do
     render
 
     expect(rendered).to have_css("section#about-us")
+  it "renders the slider image with correct id and initial src" do
+    render
+
+    expect(rendered).to include('id="slider"')
+    expect(rendered).to match(/slide1.*\.jpg/)
+  end
+
+  it "includes the JavaScript slider logic" do
+    render
+
+    expect(rendered).to include('setInterval')
+    expect(rendered).to include('slider.src = images[index];')
   end
 end
