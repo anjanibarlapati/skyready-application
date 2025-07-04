@@ -4,8 +4,9 @@ on:
   pull_request:
   push:
     branches: 
-         - main 
-         - application-url-logo 
+      - main 
+      - application-url-logo 
+      - component/footer
 
 jobs:
   scan_ruby:
