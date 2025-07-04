@@ -1,12 +1,36 @@
-<div class='about-us-container'>
-    <section id="about-us">
-    <div class="about-container">
-        <h2>About Us</h2>
-        <p>
-        SkyReady is a simple and reliable flight booking platform designed to make travel planning easy.
-        Our goal is to help users find the right flights quickly, with transparent prices and a smooth booking experience.
-        Whether it’s a one-way trip or a round journey, SkyReady is here to get you ready for takeoff — in just one tap. ✈️
-        </p>
-    </div>
-    </section>
+<div>
+  <div>
+    <%= image_tag 'slide1.jpg', id: 'slider' %>
+  </div>
+  <div class='about-us-container'>
+      <section id="about-us">
+      <div class="about-container">
+          <h2>About Us</h2>
+          <p>
+          SkyReady is a simple and reliable flight booking platform designed to make travel planning easy.
+          Our goal is to help users find the right flights quickly, with transparent prices and a smooth booking experience.
+          Whether it’s a one-way trip or a round journey, SkyReady is here to get you ready for takeoff — in just one tap. ✈️
+          </p>
+      </div>
+      </section>
+  </div>
+
+  <script>
+    document.addEventListener("DOMContentLoaded", function() {
+      const images = [
+        "<%= asset_path('slide1.jpg') %>",
+        "<%= asset_path('slide2.jpg') %>",
+        "<%= asset_path('slide3.jpg') %>",
+        "<%= asset_path('slide4.jpg') %>",
+        "<%= asset_path('slide5.jpg') %>"
+      ];
+      let index = 0;
+      const slider = document.getElementById('slider');
+
+      setInterval(() => {
+        index = (index + 1) % images.length;
+        slider.src = images[index];
+      }, 2000);
+    });
+  </script>
 </div>
