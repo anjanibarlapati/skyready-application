@@ -12,7 +12,7 @@ RSpec.describe "home/index.html.erb", type: :view do
     render
 
     expect(rendered).to have_css("section#about-us")
-  end 
+  end
 
   it "renders the slider image with correct id and initial src" do
     render
