@@ -4,11 +4,10 @@
  *= require /home
  *= require /footer
  *= require /header
- *= require /index
  */
 
 body {
   margin: 0;
-  padding-bottom: 50px;
+  padding-bottom: 70px;
   padding-top:70px;
 }
