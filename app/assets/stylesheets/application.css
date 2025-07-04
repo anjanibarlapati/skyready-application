@@ -1,4 +1,13 @@
+/*
+ *= require_self
+ *= require_tree .
+ *= require /home
+ *= require /footer
+ *= require /header
+ */
+
 body {
   margin: 0;
   padding-bottom: 50px;
+  padding-top:70px;
 }
