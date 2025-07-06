@@ -4,6 +4,7 @@
  *= require /home
  *= require /footer
  *= require /header
+ *= require /search
  */
 
 body {

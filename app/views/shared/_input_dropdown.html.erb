@@ -1,0 +1,9 @@
+<div class="input-dropdown">
+
+  <input type="text" id="<%= id %>" placeholder="<%= placeholder %>" data-dropdown-target="<%= id %>">
+  <div class="dropdown-list" id="<%= id %>-list">
+    <% options.each do |city| %>
+      <div class="dropdown-item" data-value="<%= city %>"><%= city %></div>
+    <% end %>
+  </div>
+</div>
