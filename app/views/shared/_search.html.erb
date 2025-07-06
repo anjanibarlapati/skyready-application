@@ -1,0 +1,20 @@
+<div class="search-main-container">
+  <div class="search-container">
+    <div class="input-fields-row">
+      <%= render 'shared/input_dropdown',
+          id: 'source-input',
+          placeholder: 'Enter source city',
+          options: ['Delhi', 'Mumbai', 'Bengaluru', 'Hyderabad', 'Chennai', 'Kolkata', 'Ahmedabad', 'Pune', 'Goa', 'Jaipur'] %>
+
+      <%= render 'shared/input_dropdown',
+          id: 'destination-input',
+          placeholder: 'Enter destination city',
+          options: ['Delhi', 'Mumbai', 'Bengaluru', 'Hyderabad', 'Chennai', 'Kolkata', 'Ahmedabad', 'Pune', 'Goa', 'Jaipur'] %>
+
+      <button class="search-button">Search</button>
+    </div>
+
+    <div class="search-error" id="search-error"></div>
+ 
+  </div>
+</div>
