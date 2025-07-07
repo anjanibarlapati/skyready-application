@@ -18,10 +18,13 @@ class FlightDataReader
 
     File.readlines(FLIGHT_DATA_PATH).filter_map do |line|
       fields = line.strip.split(",").map(&:strip)
-      next unless fields.size == 7
+      next unless fields.size == 8
 
-      flight_number, airline_name, from, to, date_str, departure_time, arrival_time = fields
+      flight_number, airline_name, from, to, date_str, departure_time, arrival_time, seats_str = fields
 
+      seats = seats_str.to_i
+
+      next if seats == 0
 
       next unless from.casecmp(source).zero? && to.casecmp(destination).zero?
 
@@ -46,7 +49,8 @@ class FlightDataReader
         destination: to,
         departure_date: flight_date.strftime("%Y-%m-%d"),
         departure_time: departure_time,
-        arrival_time: arrival_time
+        arrival_time: arrival_time,
+        seats: seats
       }
     end
   end
