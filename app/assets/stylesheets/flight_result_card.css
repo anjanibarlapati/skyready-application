@@ -26,7 +26,7 @@
   border-radius: 16px;
   padding: 24px 32px;
   width: 100%;
-  max-width: 700px;
+  max-width: 1000px;
   box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1),
     0 2px 4px -1px rgba(0, 0, 0, 0.06);
   transition: all 0.3s ease;
@@ -84,6 +84,15 @@
   min-width: 120px;
   max-width: 150px;
 }
+.seats-block {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  text-align: center;
+  flex: 1;
+  min-width: 160px;
+  max-width: 400px;
+}
 
 .time,
 .airline-name {
@@ -111,13 +120,10 @@
   width: 40px;
   flex-shrink: 0;
 }
-
 @media (max-width: 768px) {
   .flight-details {
-    flex-direction: row;
-    flex-wrap: wrap;
     justify-content: center;
-    gap: 20px;
+    gap: 16px;
   }
 
   .flight-block-container {
@@ -137,23 +143,18 @@
   .flight-details {
     flex-direction: column;
     align-items: center;
-    text-align: center;
     gap: 16px;
-  }
-
-  .flight-block-container {
-    justify-content: center;
-  }
-
-  .departure-block,
-  .arrival-block {
-    min-width: unset;
-    max-width: unset;
-    width: 100%;
   }
 
   .route-arrow {
     font-size: 1.5rem;
     margin: 8px 0;
+  }
+
+  .departure-block,
+  .arrival-block,
+  .seats-block {
+    width: 100%;
+    max-width: none;
   }
 }
