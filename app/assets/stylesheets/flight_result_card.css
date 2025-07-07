@@ -120,6 +120,21 @@
   width: 40px;
   flex-shrink: 0;
 }
+.time-container {
+  position: relative;
+  display: inline-block;
+}
+
+.date-diff {
+  position: absolute;
+  top: -8px; 
+  right: 5px;
+  color: #ff6b35;
+  font-size: 0.8rem;
+  font-weight: 600;
+  padding: 2px 4px;
+  border-radius: 4px;
+}
 @media (max-width: 768px) {
   .flight-details {
     justify-content: center;
