@@ -33,12 +33,13 @@
           name="departure_date"
           class="date-picker"
           value="<%= params[:departure_date].presence || Date.today.strftime('%Y-%m-%d') %>"
+          min="<%= Date.today.strftime('%Y-%m-%d') %>"
         />
       </div>
       <div class="input-field">
         <label>&nbsp;</label>
         <div class="search-button-wrapper">
-          <%= submit_tag "Search", class: "search-button" %>
+        <%= submit_tag "Search", class: "search-button" %>
         </div>
       </div>
       </div>
