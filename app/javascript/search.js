@@ -91,7 +91,6 @@ document.addEventListener("turbo:load", function () {
 
       if (source === "" && destination === "") {
         e.preventDefault();
-        console.log("Search prevented: both fields empty");
       }
     });
   }
