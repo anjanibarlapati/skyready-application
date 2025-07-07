@@ -44,7 +44,7 @@ function selectOption(inputId, value) {
   errorDiv.textContent = "";
 }
 
-document.addEventListener("DOMContentLoaded", function () {
+document.addEventListener("turbo:load", function () {
   document.querySelectorAll("input[data-dropdown-target]").forEach((input) => {
     input.addEventListener("input", () => filterDropdown(input.id));
   });
@@ -79,6 +79,22 @@ document.addEventListener("DOMContentLoaded", function () {
         .forEach((list) => (list.style.display = "none"));
     }
   });
+
+  const form = document.querySelector("form");
+  const sourceInput = document.getElementById("source-input");
+  const destinationInput = document.getElementById("destination-input");
+
+  if (form) {
+    form.addEventListener("submit", function (e) {
+      const source = sourceInput.value.trim();
+      const destination = destinationInput.value.trim();
+
+      if (source === "" && destination === "") {
+        e.preventDefault();
+        console.log("Search prevented: both fields empty");
+      }
+    });
+  }
 });
 
 window.filterDropdown = filterDropdown;
