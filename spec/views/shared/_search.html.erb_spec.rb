@@ -9,8 +9,10 @@ RSpec.describe "shared/_search.html.erb", type: :view do
     })
   end
 
-  it "renders the search form with correct fields, values, and dropdown options" do
+  it "renders the search form with correct fields, values, dropdown options, and min attribute for date" do
     render partial: "shared/search"
+
+    today = Date.today.strftime("%Y-%m-%d")
 
     expect(rendered).to have_selector("form[action='/'][method='get']")
 
@@ -25,19 +27,20 @@ RSpec.describe "shared/_search.html.erb", type: :view do
     expect(rendered).to include("Hyderabad")
     expect(rendered).to include("Goa")
 
-    expect(rendered).to have_selector("input#departure_date[name='departure_date'][type='date'][value='2025-07-07']")
+    expect(rendered).to have_selector("input#departure_date[name='departure_date'][type='date'][value='2025-07-07'][min='#{today}']")
 
     expect(rendered).to have_selector("input[type='submit'][value='Search'].search-button")
 
     expect(rendered).to have_selector("div#search-error.search-error")
   end
 
-  it "renders today's date in the date picker if no departure_date param is present" do
+  it "renders today's date as value and min attribute when no departure_date param is present" do
     allow(view).to receive(:params).and_return({ source: "", destination: "" })
 
     render partial: "shared/search"
 
     today = Date.today.strftime("%Y-%m-%d")
-    expect(rendered).to have_selector("input#departure_date[value='#{today}']")
+
+    expect(rendered).to have_selector("input#departure_date[value='#{today}'][min='#{today}']")
   end
 end
