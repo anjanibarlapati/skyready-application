@@ -5,7 +5,7 @@ on:
   push:
     branches: 
       - main
-      - filter/departure-date
+      - feature/available-seats
 
 jobs:
   scan_ruby:
