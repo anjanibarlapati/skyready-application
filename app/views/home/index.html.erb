@@ -1,13 +1,28 @@
 <div class="home-wrapper">
   <div class="slider-container">
-  <%= image_tag 'slide1.jpg', id: 'slider' %>
+    <%= image_tag 'slide1.jpg', id: 'slider' %>
 
-  <div class="slider-text">
-   <p>Let’s Fly</p>
-   <h1>One Tap To Take Off</h1>
+    <div class="slider-text">
+    <p>Let’s Fly</p>
+    <h1>One Tap To Take Off</h1>
+    </div>
   </div>
-</div>
-<%= render 'shared/search' %>
+  <%= render 'shared/search' %>
+    <% if @searched %>
+    <div class="flight-results-container">
+        <% if @flights.any? %>
+        <h2>Available Flights</h2>
+        <% @flights.each do |flight| %>
+            <%= render 'shared/flight_result_card', flight: flight %>
+        <% end %>
+        <% else %>
+        <p>No flights found for the selected route.</p>
+        <% end %>
+    </div>
+    <% end %>
+
+
+
   <div class='about-us-container'>
     <section id="about-us">
       <div class="about-container">
