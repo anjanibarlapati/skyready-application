@@ -8,16 +8,22 @@
           <span class="flight-number"> <%= flight[:flight_number] %></span>
         </div>
       </div>
+
       <div class="departure-block">
         <span class="time">🛫 <%= flight[:departure_time] %></span>
         <span class="city"><%= flight[:source] %></span>
       </div>
-      
+
       <div class="route-arrow">➡️</div>
-      
+
       <div class="arrival-block">
         <span class="time">🛬 <%= flight[:arrival_time] %></span>
         <span class="city"><%= flight[:destination] %></span>
+      </div>
+
+      <div class="seats-block">
+        <span class="time">Seats Available</span>
+        <span class="city"><%= flight[:seats] %></span>
       </div>
     </div>
   </div>
