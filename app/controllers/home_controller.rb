@@ -8,7 +8,8 @@ class HomeController < ApplicationController
       @flights = FlightDataReader.search(
         params[:source],
         params[:destination],
-        params[:departure_date].presence
+        params[:departure_date].presence,
+        params[:travellers_count] || 1
       )
     end
   end
