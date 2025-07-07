@@ -99,5 +99,35 @@ RSpec.describe FlightDataReader do
       expect(flight2[:arrival_date_difference]).to eq("+2")
       expect(flight3[:arrival_date_difference]).to be_nil
     end
+
+    it "skips flights if available seats are less than travellers_count" do
+  result = described_class.search("Delhi", "Mumbai", nil, 6)
+  expect(result.map { |f| f[:flight_number] }).not_to include("AI101", "AI102", "AI103")
+end
+
+it "includes flights with exact matching seats to travellers_count" do
+  result = described_class.search("Delhi", "Mumbai", nil, 5)
+  expect(result.map { |f| f[:flight_number] }).to include("AI101")
+end
+
+it "defaults travellers_count to 1 if not provided" do
+  result = described_class.search("Delhi", "Mumbai")
+  expect(result).not_to be_empty
+end
+
+it "treats blank travellers_count as 1" do
+  result = described_class.search("Delhi", "Mumbai", nil, "")
+  expect(result).not_to be_empty
+end
+
+it "treats invalid (non-integer) travellers_count as 1" do
+  result = described_class.search("Delhi", "Mumbai", nil, "abc")
+  expect(result).not_to be_empty
+end
+
+it "matches source and destination case-insensitively" do
+  result = described_class.search("delhi", "mumbai")
+  expect(result.map { |f| f[:flight_number] }).to include("AI101", "AI102", "AI103")
+end
   end
 end
