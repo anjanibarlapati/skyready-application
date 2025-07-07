@@ -2,19 +2,45 @@
   <%= form_with url: root_path, method: :get, local: true do %>
     <div class="search-container">
       <div class="input-fields-row">
-        <%= render 'shared/input_dropdown',
-            id: 'source-input',
-            placeholder: 'Enter source city',
-            name: 'source',
-            options: ['Delhi', 'Mumbai', 'Bengaluru', 'Hyderabad', 'Chennai', 'Kolkata', 'Ahmedabad', 'Pune', 'Goa', 'Jaipur'] %>
 
-        <%= render 'shared/input_dropdown',
-            id: 'destination-input',
-            placeholder: 'Enter destination city',
-            name: 'destination', 
-            options: ['Delhi', 'Mumbai', 'Bengaluru', 'Hyderabad', 'Chennai', 'Kolkata', 'Ahmedabad', 'Pune', 'Goa', 'Jaipur'] %>
+        <div class="input-field">
+          <label for="source-input">Source</label>
+          <%= render 'shared/input_dropdown', {
+              id: 'source-input',
+              placeholder: 'Enter source city',
+              name: 'source',
+              value: params[:source],
+              options: ['Delhi', 'Mumbai', 'Bengaluru', 'Hyderabad', 'Chennai', 'Kolkata', 'Ahmedabad', 'Pune', 'Goa', 'Jaipur']
+          } %>
+        </div>
 
-        <%= submit_tag "Search", class: "search-button" %>
+        <div class="input-field">
+          <label for="destination-input">Destination</label>
+          <%= render 'shared/input_dropdown', {
+              id: 'destination-input',
+              placeholder: 'Enter destination city',
+              name: 'destination',
+              value: params[:destination],
+              options: ['Delhi', 'Mumbai', 'Bengaluru', 'Hyderabad', 'Chennai', 'Kolkata', 'Ahmedabad', 'Pune', 'Goa', 'Jaipur']
+          } %>
+        </div>
+
+      <div class="input-field">
+        <label for="departure_date">Departure Date</label>
+        <input
+          type="date"
+          id="departure_date"
+          name="departure_date"
+          class="date-picker"
+          value="<%= params[:departure_date].presence || Date.today.strftime('%Y-%m-%d') %>"
+        />
+      </div>
+      <div class="input-field">
+        <label>&nbsp;</label>
+        <div class="search-button-wrapper">
+          <%= submit_tag "Search", class: "search-button" %>
+        </div>
+      </div>
       </div>
 
       <div class="search-error" id="search-error"></div>
