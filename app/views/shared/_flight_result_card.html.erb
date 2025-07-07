@@ -1,8 +1,24 @@
-<div class="flight-card">
-  <div class="flight-info-inline">
-    <span class="flight-number">✈️ <%= flight[:flight_number] %></span>
-    <span class="flight-city"><%= flight[:source] %></span>
-    <span class="divider">to</span>
-    <span class="flight-city"><%= flight[:destination] %></span>
+<div class="flight-cards-container">
+  <div class="flight-card">
+    <div class="flight-details">
+      <div class='flight-block-container'>
+        <div class="flight-icon">✈️ </div>
+        <div class="flight-block">
+          <span class="airline-name"> <%= flight[:airline_name] %></span>
+          <span class="flight-number"> <%= flight[:flight_number] %></span>
+        </div>
+      </div>
+      <div class="departure-block">
+        <span class="time">🛫 <%= flight[:departure_time] %></span>
+        <span class="city"><%= flight[:source] %></span>
+      </div>
+      
+      <div class="route-arrow">➡️</div>
+      
+      <div class="arrival-block">
+        <span class="time">🛬 <%= flight[:arrival_time] %></span>
+        <span class="city"><%= flight[:destination] %></span>
+      </div>
+    </div>
   </div>
 </div>
