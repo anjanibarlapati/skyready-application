@@ -1,6 +1,0 @@
-AI202,Delhi,Mumbai
-6E501,Mumbai,Goa
-SG403,Bengaluru,Delhi
-AI203,Delhi,Mumbai
-6E502,Mumbai,Goa
-SG404,Bengaluru,Delhi

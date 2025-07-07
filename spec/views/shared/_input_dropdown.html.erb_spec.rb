@@ -6,7 +6,7 @@ RSpec.describe "shared/_input_dropdown.html.erb", type: :view do
       id: "source-input",
       placeholder: "Enter source city",
       name: "source",
-      options: ["Delhi", "Mumbai", "Bengaluru"]
+      options: [ "Delhi", "Mumbai", "Bengaluru" ]
     }
 
     expect(rendered).to have_selector("input#source-input[placeholder='Enter source city'][name='source']")
