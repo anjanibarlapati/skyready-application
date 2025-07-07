@@ -25,23 +25,43 @@
           } %>
         </div>
 
-      <div class="input-field">
-        <label for="departure_date">Departure Date</label>
-        <input
-          type="date"
-          id="departure_date"
-          name="departure_date"
-          class="date-picker"
-          value="<%= params[:departure_date].presence || Date.today.strftime('%Y-%m-%d') %>"
-          min="<%= Date.today.strftime('%Y-%m-%d') %>"
-        />
-      </div>
-      <div class="input-field">
-        <label>&nbsp;</label>
-        <div class="search-button-wrapper">
-        <%= submit_tag "Search", class: "search-button" %>
+        <div class="input-field">
+          <label for="departure_date">Departure Date</label>
+          <input
+            type="date"
+            id="departure_date"
+            name="departure_date"
+            class="date-picker"
+            value="<%= params[:departure_date].presence || Date.today.strftime('%Y-%m-%d') %>"
+            min="<%= Date.today.strftime('%Y-%m-%d') %>"
+          />
         </div>
-      </div>
+
+       <div class="input-field">
+  <label for="travellers_count">Travellers</label>
+  <div class="traveller-counter">
+    <button type="button" class="counter-btn" onclick="decrementTravellers()">-</button>
+    <input
+      type="number"
+      id="travellers_count"
+      name="travellers_count"
+      min="1"
+      max="9"
+      value="<%= params[:travellers_count].presence || 1 %>"
+      readonly
+    />
+    <button type="button" class="counter-btn" onclick="incrementTravellers()">+</button>
+  </div>
+</div>
+
+
+        <div class="input-field">
+          <label>&nbsp;</label>
+          <div class="search-button-wrapper">
+            <%= submit_tag "Search", class: "search-button" %>
+          </div>
+        </div>
+        
       </div>
 
       <div class="search-error" id="search-error"></div>

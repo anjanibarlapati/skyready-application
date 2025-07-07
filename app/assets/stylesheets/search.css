@@ -144,6 +144,60 @@
 .search-error:empty{
   margin-top: 0;
 }
+.traveller-counter {
+  display: flex;
+  align-items: center;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  background: white;
+  font-family: "Poppins", sans-serif;
+}
+
+.traveller-counter input[type="number"] {
+  flex: 1;
+  padding: 8px;
+  border: none;
+  outline: none;
+  font-size: 14px;
+  font-family: "Poppins", sans-serif;
+  text-align: center;
+  background: transparent;
+}
+
+.counter-btn {
+  width: 30px;
+  height: 38px;
+  border: none;
+  background: #f8f9fa;
+  cursor: pointer;
+  font-size: 16px;
+  font-weight: 500;
+  color: #333;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+}
+
+.counter-btn:first-child {
+  border-top-left-radius: 6px;
+  border-bottom-left-radius: 6px;
+  border-right: 1px solid #e0e0e0;
+}
+
+.counter-btn:last-child {
+  border-top-right-radius: 6px;
+  border-bottom-right-radius: 6px;
+  border-left: 1px solid #e0e0e0;
+}
+
+.counter-btn:hover {
+  background: #e9ecef;
+}
+
+.counter-btn:active {
+  background: #dee2e6;
+}
 
 @media (max-width: 768px) {
   .input-fields-row {
@@ -151,6 +205,10 @@
     gap: 15px;
     align-items: center;
     min-width: 300px;
+  }
+  .traveller-counter {
+    width: 100%;
+    max-width: 400px;
   }
 
   .input-field,
@@ -173,5 +231,15 @@
   .search-button {
     padding: 10px;
     font-size: 1rem;
+  }
+  .traveller-counter input[type="number"] {
+    padding: 10px;
+    font-size: 1rem;
+  }
+  
+  .counter-btn {
+    width: 35px;
+    height: 35px;
+    font-size: 18px;
   }
 }
