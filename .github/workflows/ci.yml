@@ -5,7 +5,6 @@ on:
   push:
     branches: 
       - main
-      - disable/previous-date
 
 jobs:
   scan_ruby:
