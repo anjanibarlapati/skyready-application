@@ -5,6 +5,7 @@
  *= require /footer
  *= require /header
  *= require /search
+ *= require /flight_result_card
  */
 
 body {
