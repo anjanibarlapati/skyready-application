@@ -5,7 +5,7 @@ on:
   push:
     branches: 
       - main
-      - component/search
+      - filter/departure-date
 
 jobs:
   scan_ruby:
