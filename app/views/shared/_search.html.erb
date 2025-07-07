@@ -1,20 +1,23 @@
 <div class="search-main-container">
-  <div class="search-container">
-    <div class="input-fields-row">
-      <%= render 'shared/input_dropdown',
-          id: 'source-input',
-          placeholder: 'Enter source city',
-          options: ['Delhi', 'Mumbai', 'Bengaluru', 'Hyderabad', 'Chennai', 'Kolkata', 'Ahmedabad', 'Pune', 'Goa', 'Jaipur'] %>
+  <%= form_with url: root_path, method: :get, local: true do %>
+    <div class="search-container">
+      <div class="input-fields-row">
+        <%= render 'shared/input_dropdown',
+            id: 'source-input',
+            placeholder: 'Enter source city',
+            name: 'source',
+            options: ['Delhi', 'Mumbai', 'Bengaluru', 'Hyderabad', 'Chennai', 'Kolkata', 'Ahmedabad', 'Pune', 'Goa', 'Jaipur'] %>
 
-      <%= render 'shared/input_dropdown',
-          id: 'destination-input',
-          placeholder: 'Enter destination city',
-          options: ['Delhi', 'Mumbai', 'Bengaluru', 'Hyderabad', 'Chennai', 'Kolkata', 'Ahmedabad', 'Pune', 'Goa', 'Jaipur'] %>
+        <%= render 'shared/input_dropdown',
+            id: 'destination-input',
+            placeholder: 'Enter destination city',
+            name: 'destination', 
+            options: ['Delhi', 'Mumbai', 'Bengaluru', 'Hyderabad', 'Chennai', 'Kolkata', 'Ahmedabad', 'Pune', 'Goa', 'Jaipur'] %>
 
-      <button class="search-button">Search</button>
+        <%= submit_tag "Search", class: "search-button" %>
+      </div>
+
+      <div class="search-error" id="search-error"></div>
     </div>
-
-    <div class="search-error" id="search-error"></div>
- 
-  </div>
+  <% end %>
 </div>
