@@ -1,22 +1,22 @@
 require 'rails_helper'
 
 RSpec.describe FlightDataReader do
-  describe ".search with full coverage and edge cases" do
+  describe ".search with parameters: source, destination, date, class_type, travellers_count" do
     let(:test_data_path) { Rails.root.join("spec/fixtures/data/flight_date_diff.txt") }
 
     before do
       FileUtils.mkdir_p(File.dirname(test_data_path))
 
       File.open(test_data_path, "w") do |f|
-        f.puts "AI101,Air India,Delhi,Mumbai,2025-07-10,08:00,2025-07-10,10:00,5,4,3,12"
-        f.puts "AI102,Air India,Delhi,Mumbai,2025-07-10,23:30,2025-07-11,01:30,4,3,2,9"
-        f.puts "AI103,Air India,Delhi,Mumbai,2025-07-10,23:45,2025-07-12,01:15,3,2,1,6"
-        f.puts "AI104,Air India,Delhi,Mumbai,invalid-date,08:00,2025-07-10,10:00,5,4,3,12"
-        f.puts "AI105,Air India,Delhi,Mumbai,2025-07-10,08:00,invalid-date,10:00,5,4,3,12"
-        f.puts "AI106,Air India,Delhi,Mumbai,2025-07-10,08:00,2025-07-10,10:00,0,0,0,0"
-        f.puts "AI107,Air India,Delhi,Chennai,2025-07-10,08:00,2025-07-10,10:00,5,4,3,12"
-        f.puts "AI108,Air India,Delhi,Mumbai,2025-07-11,05:00,2025-07-11,07:00,2,1,1,6"
-        f.puts "AI109,Air India,Delhi,Mumbai,2025-07-11,20:00,2025-07-11,22:00,2,1,1,6"
+        f.puts "AI101,Air India,Delhi,Mumbai,2025-07-10,08:00,2025-07-10,10:00,5,4,3,12,5000,7000,9000"
+        f.puts "AI102,Air India,Delhi,Mumbai,2025-07-10,23:30,2025-07-11,01:30,4,3,2,9,5200,7400,9300"
+        f.puts "AI103,Air India,Delhi,Mumbai,2025-07-10,23:45,2025-07-12,01:15,3,2,1,6,5400,7600,9500"
+        f.puts "AI104,Air India,Delhi,Mumbai,invalid-date,08:00,2025-07-10,10:00,5,4,3,12,5000,7000,9000"
+        f.puts "AI105,Air India,Delhi,Mumbai,2025-07-10,08:00,invalid-date,10:00,5,4,3,12,5000,7000,9000"
+        f.puts "AI106,Air India,Delhi,Mumbai,2025-07-10,08:00,2025-07-10,10:00,0,0,0,0,5000,7000,9000"
+        f.puts "AI107,Air India,Delhi,Chennai,2025-07-10,08:00,2025-07-10,10:00,5,4,3,12,5000,7000,9000"
+        f.puts "AI108,Air India,Delhi,Mumbai,2025-07-11,05:00,2025-07-11,07:00,2,1,1,6,5000,7000,9000"
+        f.puts "AI109,Air India,Delhi,Mumbai,2025-07-11,20:00,2025-07-11,22:00,2,1,1,6,5000,7000,9000"
         f.puts "INVALID LINE WITHOUT ENOUGH FIELDS"
       end
 
@@ -32,9 +32,9 @@ RSpec.describe FlightDataReader do
       expect(described_class.search("Delhi", "Mumbai")).to eq([])
     end
 
-    it "returns [] for invalid departure_date param" do
+    it "ignores invalid departure_date and returns all matching flights" do
       result = described_class.search("Delhi", "Mumbai", "invalid-date")
-      expect(result).to eq([])
+      expect(result.map { |f| f[:flight_number] }).to contain_exactly("AI101", "AI102", "AI103", "AI108", "AI109")
     end
 
     it "returns matching flights without departure_date" do
@@ -62,7 +62,7 @@ RSpec.describe FlightDataReader do
       expect(result.map { |f| f[:flight_number] }).not_to include("AI107")
     end
 
-    it "skips lines with fewer than 12 fields" do
+    it "skips lines with fewer than 15 fields" do
       result = described_class.search("Delhi", "Mumbai")
       expect(result.map { |f| f[:flight_number] }).not_to include("INVALID")
     end
@@ -70,7 +70,6 @@ RSpec.describe FlightDataReader do
     it "skips today's flights already departed" do
       allow(Date).to receive(:today).and_return(Date.parse("2025-07-11"))
       allow(Time).to receive(:now).and_return(Time.parse("06:00"))
-
       result = described_class.search("Delhi", "Mumbai", "2025-07-11")
       expect(result.map { |f| f[:flight_number] }).to contain_exactly("AI109")
     end
@@ -78,7 +77,6 @@ RSpec.describe FlightDataReader do
     it "includes today's flights that are still to depart" do
       allow(Date).to receive(:today).and_return(Date.parse("2025-07-11"))
       allow(Time).to receive(:now).and_return(Time.parse("19:00"))
-
       result = described_class.search("Delhi", "Mumbai", "2025-07-11")
       expect(result.map { |f| f[:flight_number] }).to contain_exactly("AI109")
     end
@@ -116,6 +114,26 @@ RSpec.describe FlightDataReader do
     it "treats non-integer travellers_count as 1" do
       result = described_class.search("Delhi", "Mumbai", nil, "abc", "Economic")
       expect(result).not_to be_empty
+    end
+
+    it "treats negative traveller count as 1" do
+      result = described_class.search("Delhi", "Mumbai", nil, -3, "Economic")
+      expect(result).not_to be_empty
+    end
+
+    it "parses string traveller count correctly" do
+      result = described_class.search("Delhi", "Mumbai", nil, "2", "Economic")
+      expect(result.map { |f| f[:flight_number] }).to include("AI101", "AI102")
+    end
+
+    it "defaults class_type to Economic if blank" do
+      result = described_class.search("Delhi", "Mumbai", nil, 2, "")
+      expect(result.map { |f| f[:flight_number] }).to include("AI101", "AI102")
+    end
+
+    it "defaults class_type to Economic if nil" do
+      result = described_class.search("Delhi", "Mumbai", nil, 2, nil)
+      expect(result.map { |f| f[:flight_number] }).to include("AI101", "AI102")
     end
 
     it "matches source and destination case-insensitively" do
