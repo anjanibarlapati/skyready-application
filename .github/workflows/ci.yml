@@ -5,7 +5,7 @@ on:
   push:
     branches: 
       - main
-      - filter/number-of-passengers
+      - autoscroll-to-flight-results
 
 jobs:
   scan_ruby:

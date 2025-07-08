@@ -9,7 +9,7 @@
   </div>
   <%= render 'shared/search' %>
     <% if @searched %>
-    <div class="flight-results-container">
+    <div id="flight-results" class="flight-results-container">
         <% if @flights.any? %>
         <h2>Available Flights</h2>
         <% @flights.each do |flight| %>
@@ -53,5 +53,11 @@
       index = (index + 1) % images.length;
       slider.src = images[index];
     }, 2000);
+    <% if @searched %>
+      const resultsContainer = document.getElementById('flight-results');
+      if (resultsContainer) {
+        resultsContainer.scrollIntoView({ behavior: "smooth", block: "center" });
+      }
+    <% end %>
   });
 </script>

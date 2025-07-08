@@ -1,5 +1,5 @@
 <div class="input-dropdown">
-  <input type="text" id="<%= id %>" placeholder="<%= placeholder %>" value="<%= value %>" name="<%= local_assigns[:name] %>" data-dropdown-target="<%= id %>">
+  <input type="text" id="<%= id %>" placeholder="<%= placeholder %>" value="<%= value %>" name="<%= local_assigns[:name] %>" data-dropdown-target="<%= id %>" autocomplete="off">
   <div class="dropdown-list" id="<%= id %>-list">
     <% options.each do |city| %>
       <div class="dropdown-item" data-value="<%= city %>"><%= city %></div>
