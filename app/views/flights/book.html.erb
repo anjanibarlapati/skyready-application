@@ -1,0 +1,29 @@
+<div class="booking-page">
+  <div class="booking-content">
+    <div class="booking-header">
+      <h1>Confirm Your Flight</h1>
+    </div>
+    <div class="booking-details-container">
+      <%= render 'shared/flight_result_card', flight: @flight, hide_book_button: true %>
+
+      <div class="fare-summary-card">
+        <h2>Fare Summary</h2>
+        <div class="fare-line">
+          <span>Base Fare</span>
+          <span>₹ <%= @flight[:base_price].to_i * @flight[:travellers_count].to_i %></span>
+        </div>
+        <div class="fare-line">
+          <span>Taxes & Fees</span>
+          <span>₹ <%= (@flight[:price].to_i - @flight[:base_price].to_i) * @flight[:travellers_count].to_i %></span>
+        </div>
+        <hr>
+        <div class="fare-line total">
+          <strong>Total</strong>
+          <strong>₹ <%= @flight[:price].to_i * @flight[:travellers_count].to_i %></strong>
+        </div>
+      </div>
+  </div>
+ <div class="booking-actions">
+        <%= button_to 'Confirm Booking', confirm_flight_path(flight: @flight.to_json), method: :post, class: 'confirm-button' %>
+  </div>
+</div>
