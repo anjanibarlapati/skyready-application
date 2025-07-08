@@ -10,7 +10,8 @@ class FlightDataReader
     current_time = now.strftime("%H:%M")
 
     search_date = Date.parse(departure_date) rescue nil if departure_date.present?
-    travellers_count = travellers_count.to_i < 1 ? 1 : travellers_count.to_i
+    travellers_count = (travellers_count.presence || 1).to_i
+    travellers_count = 1 if travellers_count < 1
 
     File.readlines(FLIGHT_DATA_PATH).filter_map do |line|
       fields = line.strip.split(",").map(&:strip)
@@ -105,7 +106,10 @@ class FlightDataReader
         arrival_time: arr_time,
         arrival_date_difference: date_diff > 0 ? "+#{date_diff}" : nil,
         seats: available_seats,
-        price: price
+        price: price,
+        base_price: base_price,
+        travellers_count: travellers_count,
+        class_type: class_type
       }
     end
   end
