@@ -5,6 +5,7 @@ on:
   push:
     branches: 
       - main
+      - feature/book-flight-seats
 
 jobs:
   scan_ruby:
