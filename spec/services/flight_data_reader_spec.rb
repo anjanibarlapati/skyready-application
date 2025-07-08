@@ -7,15 +7,18 @@ RSpec.describe FlightDataReader do
     before do
       FileUtils.mkdir_p(File.dirname(test_data_path))
       File.open(test_data_path, "w") do |f|
-        f.puts "AI202,Air India,Delhi,Mumbai,2025-07-08,18:00,2025-07-08,19:30,100,20,50,40,20,20,140,4000,6000,8000"
-        f.puts "AI203,Air India,Delhi,Mumbai,2025-07-11,18:00,2025-07-11,20:30,100,20,50,10,20,9,39,4000,6000,8000"
-        f.puts "AI204,Air India,Delhi,Mumbai,2025-07-11,11:00,2025-07-12,08:30,100,14,50,8,20,6,28,4000,6000,8000"
-        f.puts "6E501,IndiGo,Mumbai,Goa,2025-07-11,09:15,2025-07-11,11:00,100,0,50,0,20,0,0,3000,4500,6000"
-        f.puts "SG403,SpiceJet,Bengaluru,Delhi,2025-07-12,14:00,2025-07-12,16:45,100,4,50,2,20,2,8,5000,7500,10000"
+        f.puts [
+          "AI202,Air India,Delhi,Mumbai,#{Date.today},18:00,#{Date.today},19:30,100,20,50,40,20,20,140,4000,6000,8000",
+          "AI203,Air India,Delhi,Mumbai,#{Date.today + 3},18:00,#{Date.today + 3},20:30,100,20,50,10,20,9,39,4000,6000,8000",
+          "AI204,Air India,Delhi,Mumbai,#{Date.today + 3},23:00,#{Date.today + 4},08:30,100,14,50,8,20,6,28,4000,6000,8000",
+          "6E501,IndiGo,Mumbai,Goa,#{Date.today + 3},09:15,#{Date.today + 3},11:00,100,0,50,0,20,0,0,3000,4500,6000",
+          "SG403,SpiceJet,Bengaluru,Delhi,#{Date.today + 4},14:00,#{Date.today + 4},16:45,100,4,50,2,20,2,8,5000,7500,10000"
+        ].join("\n")
       end
 
       stub_const("#{described_class}::FLIGHT_DATA_PATH", test_data_path)
     end
+
 
     after do
       File.delete(test_data_path) if File.exist?(test_data_path)
