@@ -26,11 +26,14 @@
       <span class="city"><%= flight[:destination] %></span>
     </div>
 
-
       <div class="seats-block">
         <span class="time">Seats Available</span>
         <span class="city"><%= flight[:seats] %></span>
       </div>
+      <div class="flight-price">
+        <span class="price-label">Price</span>
+        <span class="price-value">₹ <%= number_with_delimiter(flight[:price]) %></span>
+    </div>
     </div>
   </div>
 </div>

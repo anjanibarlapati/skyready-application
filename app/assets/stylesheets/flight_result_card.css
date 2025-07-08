@@ -4,7 +4,7 @@
   border-radius: 16px;
   margin: 40px auto 20px;
   box-shadow: 0 2px 12px rgba(0, 0, 0, 0.05);
-  max-width: 850px;
+  max-width: 1000px;
   width: 90%;
   display: flex;
   flex-direction: column;
@@ -26,7 +26,7 @@
   border-radius: 16px;
   padding: 24px 32px;
   width: 100%;
-  max-width: 1000px;
+  max-width: 2000px;
   box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1),
     0 2px 4px -1px rgba(0, 0, 0, 0.06);
   transition: all 0.3s ease;
@@ -45,8 +45,9 @@
   align-items: center;
   justify-content: space-between;
   flex-wrap: wrap;
-  gap: 20px;
-  width: 100%;
+   gap: 20px; 
+  /* width: 100%;  */
+  min-width: 800px;
 }
 
 .flight-block-container {
@@ -93,9 +94,20 @@
   min-width: 160px;
   max-width: 400px;
 }
+.flight-price {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  text-align: center;
+  /* flex: 1; */
+  min-width: 100px;
+  /* max-width: 400px; */
+  /* background-color: red; */
+}
 
 .time,
-.airline-name {
+.airline-name,
+.price-label {
   font-size: 1.1rem;
   font-weight: 600;
   color: #1e293b;
@@ -103,7 +115,8 @@
 }
 
 .city,
-.flight-number {
+.flight-number,
+.price-value {
   font-size: 1rem;
   color: #0f172a;
   word-wrap: break-word;
@@ -127,7 +140,7 @@
 
 .date-diff {
   position: absolute;
-  top: -8px; 
+  top: -8px;
   right: 5px;
   color: #ff6b35;
   font-size: 0.8rem;
@@ -136,10 +149,6 @@
   border-radius: 4px;
 }
 @media (max-width: 768px) {
-  .flight-details {
-    justify-content: center;
-    gap: 16px;
-  }
 
   .flight-block-container {
     justify-content: center;
@@ -147,6 +156,13 @@
 
   .route-arrow {
     margin: 0 10px;
+  }
+  .flight-details {
+    flex-direction: column;
+    align-items: center;
+    gap: 20px;
+    max-width: 300px;
+    min-width: 200px;
   }
 }
 
@@ -159,6 +175,9 @@
     flex-direction: column;
     align-items: center;
     gap: 16px;
+    background-color: pink;
+    max-width: 300px;
+    min-width: 200px;
   }
 
   .route-arrow {
@@ -168,7 +187,8 @@
 
   .departure-block,
   .arrival-block,
-  .seats-block {
+  .seats-block,
+  .flight-price { 
     width: 100%;
     max-width: none;
   }
