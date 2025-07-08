@@ -2,7 +2,7 @@ require 'rails_helper'
 
 RSpec.describe "shared/_flight_result_card.html.erb", type: :view do
   context "when arrival_date_difference is present" do
-    it "renders the flight card with date difference badge" do
+    it "renders the flight card with date difference badge and all details" do
       flight = {
         flight_number: "SK123",
         airline_name: "Air India",
@@ -11,7 +11,8 @@ RSpec.describe "shared/_flight_result_card.html.erb", type: :view do
         departure_time: "08:00",
         arrival_time: "10:00",
         arrival_date_difference: "+1",
-        seats: 5
+        seats: 5,
+        price: 7800
       }
 
       render partial: "shared/flight_result_card", locals: { flight: flight }
@@ -26,6 +27,8 @@ RSpec.describe "shared/_flight_result_card.html.erb", type: :view do
       expect(rendered).to have_css(".arrival-block")
       expect(rendered).to have_css(".route-arrow", text: "➡️")
       expect(rendered).to have_css(".seats-block")
+      expect(rendered).to have_css(".flight-price")
+      expect(rendered).to have_css(".date-diff", text: "+1")
 
       expect(rendered).to include("Air India")
       expect(rendered).to include("SK123")
@@ -33,9 +36,9 @@ RSpec.describe "shared/_flight_result_card.html.erb", type: :view do
       expect(rendered).to include("Mumbai")
       expect(rendered).to include("🛫 08:00")
       expect(rendered).to include("🛬 10:00")
-      expect(rendered).to include("+1")
       expect(rendered).to include("Seats Available")
       expect(rendered).to include("5")
+      expect(rendered).to include("₹ 7,800")
     end
   end
 
@@ -49,7 +52,8 @@ RSpec.describe "shared/_flight_result_card.html.erb", type: :view do
         departure_time: "09:00",
         arrival_time: "10:30",
         arrival_date_difference: nil,
-        seats: 3
+        seats: 3,
+        price: 5600
       }
 
       render partial: "shared/flight_result_card", locals: { flight: flight }
@@ -60,9 +64,10 @@ RSpec.describe "shared/_flight_result_card.html.erb", type: :view do
       expect(rendered).to include("Chennai")
       expect(rendered).to include("🛫 09:00")
       expect(rendered).to include("🛬 10:30")
-      expect(rendered).not_to include("+")
       expect(rendered).to include("Seats Available")
       expect(rendered).to include("3")
+      expect(rendered).to include("₹ 5,600")
+      expect(rendered).not_to have_css(".date-diff")
     end
   end
 end
