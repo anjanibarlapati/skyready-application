@@ -5,7 +5,7 @@ on:
   push:
     branches: 
       - main
-      - feature/pricing-strategy-seats
+      - feature/pricing-strategy-by-date
 
 jobs:
   scan_ruby:
