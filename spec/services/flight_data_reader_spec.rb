@@ -120,8 +120,8 @@ context "pricing strategy" do
     result = described_class.search("Delhi", "Mumbai", dep_date, 1, "Economic")
     flight = result.find { |f| f[:flight_number] == "AI301" }
 
-    booking_multiplier = 1.0  # 20% booked
-    date_multiplier = 1 + 0.10 * (3 - 2)  # 1 day into 3-day window = 10%
+    booking_multiplier = 1.0
+    date_multiplier = 1 + 0.10 * (3 - 2)
     expected_price = (4000 * booking_multiplier * date_multiplier).to_i
 
     expect(flight[:price]).to eq(expected_price)
@@ -133,8 +133,8 @@ context "pricing strategy" do
     result = described_class.search("Delhi", "Mumbai", dep_date, 1, "Economic")
     flight = result.find { |f| f[:flight_number] == "AI302" }
 
-    booking_multiplier = 1.2  # 40% booked
-    date_multiplier = 1 + 0.10 * (3 - 2)  # still 2 days away = 10%
+    booking_multiplier = 1.2
+    date_multiplier = 1 + 0.10 * (3 - 2)
     expected_price = (4000 * booking_multiplier * date_multiplier).to_i
 
     expect(flight[:price]).to eq(expected_price)
@@ -146,8 +146,8 @@ context "pricing strategy" do
     result = described_class.search("Delhi", "Mumbai", dep_date, 1, "Economic")
     flight = result.find { |f| f[:flight_number] == "AI303" }
 
-    booking_multiplier = 1.0  # 20% booked
-    date_multiplier = 1 + 0.10 * (3 - 2)  # 10% added
+    booking_multiplier = 1.0
+    date_multiplier = 1 + 0.10 * (3 - 2)
     expected_price = (4000 * booking_multiplier * date_multiplier).to_i
 
     expect(flight[:price]).to eq(expected_price)
@@ -160,7 +160,7 @@ context "pricing strategy" do
     flight = result.find { |f| f[:flight_number] == "AI304" }
 
     booking_multiplier = 1.0
-    date_multiplier = (1 + 0.02 * (10 - 7)).clamp(1.0, 1.14)  # = 1.06
+    date_multiplier = (1 + 0.02 * (10 - 7)).clamp(1.0, 1.14)
     expected_price = (4000 * booking_multiplier * date_multiplier).to_i
 
     expect(flight[:price]).to eq(expected_price)
@@ -181,8 +181,8 @@ context "pricing strategy" do
     result = described_class.search("Delhi", "Mumbai", dep_date, 1, "Economic")
     flight = result.find { |f| f[:flight_number] == "AI306" }
 
-    booking_multiplier = 1.2  # 40% booked
-    date_multiplier = 1 + 0.10 * (3 - 2)  # 10% added
+    booking_multiplier = 1.2
+    date_multiplier = 1 + 0.10 * (3 - 2)
     expected_price = (4000 * booking_multiplier * date_multiplier).to_i
 
     expect(flight[:price]).to eq(expected_price)
