@@ -34,6 +34,11 @@
         <span class="price-label">Price</span>
         <span class="price-value">₹ <%= number_with_delimiter(flight[:price]) %></span>
     </div>
+    <% unless local_assigns[:hide_book_button] %>
+      <div class="book-button-container">
+        <%= link_to 'Book', book_flight_path(flight: flight), class: 'book-button' %>
+      </div>
+    <% end %>
     </div>
   </div>
 </div>
