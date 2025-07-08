@@ -6,7 +6,8 @@ class FlightDataReader
     class_type = class_type.presence || "Economic"
 
     today = Date.today
-    current_time = Time.now.strftime("%H:%M")
+    now = Time.now
+    current_time = now.strftime("%H:%M")
 
     search_date = Date.parse(departure_date) rescue nil if departure_date.present?
     travellers_count = travellers_count.to_i < 1 ? 1 : travellers_count.to_i
@@ -47,23 +48,49 @@ class FlightDataReader
       dep_date = Date.parse(dep_date_str) rescue next
       arr_date = Date.parse(arr_date_str) rescue next
       next if search_date.present? && dep_date != search_date
-      next if search_date == today && dep_date == today && dep_time <= current_time
+      if search_date == today && dep_date == today
+        flight_time = Time.parse("#{dep_date_str} #{dep_time}") rescue nil
+        next if flight_time && flight_time <= now
+      end
 
-      total_seats = class_total[class_type]
-      available_seats = class_available[class_type]
-      percent_booked = ((total_seats.to_f - available_seats.to_f) / total_seats) * 100
 
-      base_price = class_prices[class_type]
+    total_seats = class_total[class_type]
+    available_seats = class_available[class_type]
+    next if total_seats <= 0
+    percent_booked = ((total_seats.to_f - available_seats.to_f) / total_seats) * 100
 
-     price = if percent_booked >= 0 && percent_booked <= 30.0
-          base_price
-     elsif percent_booked > 30.0 && percent_booked <= 50.0
-          (base_price * 1.2).to_i
-     elsif percent_booked > 50.0 && percent_booked <= 75.0
-          (base_price * 1.35).to_i
-     else
-          (base_price * 1.5).to_i
-     end
+    base_price = class_prices[class_type]
+
+    booking_multiplier =
+      if percent_booked >= 0 && percent_booked <= 30.0
+        1.0
+      elsif percent_booked > 30.0 && percent_booked <= 50.0
+        1.2
+      elsif percent_booked > 50.0 && percent_booked <= 75.0
+        1.35
+      else
+        1.5
+      end
+
+    begin
+      dep_datetime = Time.parse("#{dep_date_str} #{dep_time}")
+      days_before_departure = ((dep_datetime - now) / 86400.0).floor
+    rescue ArgumentError
+      next
+    end
+
+
+    date_multiplier =
+      if days_before_departure >= 0 && days_before_departure <= 3
+        (1 + 0.10 * (3 - days_before_departure)).clamp(1.0, 1.3)
+      elsif days_before_departure > 3 && days_before_departure <= 10
+        (1 + 0.02 * (10 - days_before_departure)).clamp(1.0, 1.14)
+      else
+        1.0
+      end
+
+    price = (base_price * booking_multiplier * date_multiplier).to_i
+
 
       date_diff = (arr_date - dep_date).to_i
 
