@@ -25,7 +25,27 @@
 
   <body>
    <%= render "shared/header" %>
-    <%= yield %>
+
+  <% if flash[:notice] %>
+    <div class="flash-notice" id="flashNotice">
+      <%= flash[:notice] %>
+    </div>
+  <% end %>
+
+  <%= yield %>
+
+    <script>
+      document.addEventListener("turbo:load", () => {
+        const flash = document.getElementById("flashNotice");
+        if (flash) {
+          setTimeout(() => {
+            flash.classList.add("fade-out");
+            setTimeout(() => flash.remove(), 800);
+          }, 2000);
+        }
+      });
+    </script>
     <%= render "shared/footer" %>
+    
   </body>
 </html>

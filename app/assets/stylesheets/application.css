@@ -6,6 +6,7 @@
  *= require /header
  *= require /search
  *= require /flight_result_card
+  *= require /book
  */
 
 body {
@@ -16,4 +17,24 @@ body {
 
 html {
   scroll-behavior: smooth;
+}
+
+.flash-notice {
+  background-color: #d1f7d6;
+  color: #1d643b;
+  padding: 15px 20px;
+  margin: 20px auto;
+  border-radius: 8px;
+  max-width: 600px;
+  text-align: center;
+  font-weight: bold;
+  font-family: 'Poppins', sans-serif;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+  transition: opacity 0.6s ease, visibility 0.6s ease;
+  opacity: 1;
+  visibility: visible;
+}
+.flash-notice.fade-out {
+  opacity: 0;
+  visibility: hidden;
 }
