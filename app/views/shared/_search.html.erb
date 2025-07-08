@@ -38,23 +38,31 @@
         </div>
 
        <div class="input-field">
-  <label for="travellers_count">Travellers</label>
-  <div class="traveller-counter">
-    <button type="button" class="counter-btn" onclick="decrementTravellers()">-</button>
-    <input
-      type="number"
-      id="travellers_count"
-      name="travellers_count"
-      min="1"
-      max="9"
-      value="<%= params[:travellers_count].presence || 1 %>"
-      readonly
-    />
-    <button type="button" class="counter-btn" onclick="incrementTravellers()">+</button>
-  </div>
-</div>
-
-
+        <label for="travellers_count">Travellers</label>
+        <div class="traveller-counter">
+          <button type="button" class="counter-btn" onclick="decrementTravellers()">-</button>
+          <input
+            type="number"
+            id="travellers_count"
+            name="travellers_count"
+            min="1"
+            max="9"
+            value="<%= params[:travellers_count].presence || 1 %>"
+            readonly
+          />
+          <button type="button" class="counter-btn" onclick="incrementTravellers()">+</button>
+        </div>
+      </div>
+      <div class="input-field">
+        <label for="class_type">Class Type</label>
+        <%= render 'shared/input_dropdown', {
+            id: 'class_type',
+            placeholder: 'Select class type',
+            name: 'class_type',
+            value: params[:class_type].presence || 'Economic',
+            options: ['Economic', 'Second Class', 'First Class']
+        } %>
+      </div>
         <div class="input-field">
           <label>&nbsp;</label>
           <div class="search-button-wrapper">
