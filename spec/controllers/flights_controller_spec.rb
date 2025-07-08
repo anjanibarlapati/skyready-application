@@ -15,7 +15,7 @@ RSpec.describe FlightsController, type: :request do
       it "renders the book template with @flight assigned" do
         get book_flight_path, params: { flight: flight_params }
         expect(response).to have_http_status(:ok)
-        expect(response.body).to include("Confirm Your Flight") # or any text from the template
+        expect(response.body).to include("Confirm Your Flight")
       end
     end
 
