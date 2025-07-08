@@ -1,0 +1,88 @@
+.booking-page {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+
+.booking-content {
+  font-family: 'Poppins', sans-serif;
+  max-width: 900px;
+  background-color: #f8faff;
+  border-radius: 16px;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.05);
+  margin: 40px auto;
+  padding: 30px;
+}
+
+.booking-header h1 {
+  font-size: 2.2rem;
+  color: #000080;
+  margin-bottom: 10px;
+}
+
+.booking-header p {
+  font-size: 1rem;
+  color: #333;
+  margin-bottom: 30px;
+}
+
+
+.booking-details-container{
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap:50px;
+  padding: 20px 0px;
+}
+
+.fare-summary-card {
+  min-width: 400px;
+  background: #fefefe;
+  border-radius: 12px;
+  padding: 24px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
+  margin-bottom: 30px;
+}
+
+.fare-summary-card h2 {
+  margin-top: 0;
+  color: #000080;
+  font-size: 1.4rem;
+  margin-bottom: 18px;
+}
+
+.fare-line {
+  display: flex;
+  justify-content: space-between;
+  font-size: 1rem;
+  padding: 6px 0;
+}
+
+.fare-line.total {
+  font-size: 1.2rem;
+  color: #000;
+  font-weight: bold;
+}
+
+.booking-actions {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.confirm-button {
+  background-color: #000080;
+  color: white;
+  padding: 14px 28px;
+  font-size: 1rem;
+  font-weight: 600;
+  border: none;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.confirm-button:hover {
+  background-color: #ff6b35;
+}
