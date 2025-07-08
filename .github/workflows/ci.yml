@@ -5,7 +5,7 @@ on:
   push:
     branches: 
       - main
-      - autoscroll-to-flight-results
+      - feature/total-fare
 
 jobs:
   scan_ruby:
