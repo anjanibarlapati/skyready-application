@@ -30,7 +30,7 @@ RSpec.describe FlightDataUpdater do
       described_class.reduce_seats("AI202", "2025-07-15", class_type, 5)
 
       fields = read_fields
-      expect(fields[class_index].to_i).to eq([initial - 5, 0].max)
+      expect(fields[class_index].to_i).to eq([ initial - 5, 0 ].max)
       expect(fields[14].to_i).to eq(95)
     end
   end
