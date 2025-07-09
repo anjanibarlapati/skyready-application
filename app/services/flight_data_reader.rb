@@ -15,14 +15,13 @@ class FlightDataReader
 
     File.readlines(FLIGHT_DATA_PATH).filter_map do |line|
       fields = line.strip.split(",").map(&:strip)
-      next unless fields.size == 18
+      next unless fields.size == 17
 
       flight_number, airline_name, from, to,
       dep_date_str, dep_time, arr_date_str, arr_time,
       economic_total_str, economic_available_str,
       second_total_str, second_available_str,
       first_total_str, first_available_str,
-      total_seats_str,
       economic_price_str, second_class_price_str, first_class_price_str = fields
 
       class_total = {
@@ -83,14 +82,18 @@ class FlightDataReader
 
     date_multiplier =
       if days_before_departure >= 0 && days_before_departure <= 3
-        (1 + 0.10 * (3 - days_before_departure)).clamp(1.0, 1.3)
+        (1 + 0.10 * (4.0 - days_before_departure)).clamp(1.10, 1.40)
       elsif days_before_departure > 3 && days_before_departure <= 10
-        (1 + 0.02 * (10 - days_before_departure)).clamp(1.0, 1.14)
+        (1 + 0.02 * (11.0 - days_before_departure)).clamp(1.02, 1.14)
       else
         1.0
       end
 
-    price = (base_price * booking_multiplier * date_multiplier).to_i
+    seat_tax = (base_price * (booking_multiplier - 1.0))
+
+    date_tax = (base_price * (date_multiplier - 1.0))
+
+    price = (base_price+ seat_tax + date_tax).to_i
 
 
       date_diff = (arr_date - dep_date).to_i
