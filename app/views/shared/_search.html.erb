@@ -40,7 +40,7 @@
        <div class="input-field">
         <label for="travellers_count">Travellers</label>
         <div class="traveller-counter">
-          <button type="button" class="counter-btn" onclick="decrementTravellers()">-</button>
+          <button type="button" class="counter-btn">-</button>
           <input
             type="number"
             id="travellers_count"
@@ -50,7 +50,7 @@
             value="<%= params[:travellers_count].presence || 1 %>"
             readonly
           />
-          <button type="button" class="counter-btn" onclick="incrementTravellers()">+</button>
+          <button type="button" class="counter-btn">+</button>
         </div>
       </div>
       <div class="input-field">
@@ -64,7 +64,6 @@
         } %>
       </div>
         <div class="input-field">
-          <label>&nbsp;</label>
           <div class="search-button-wrapper">
             <%= submit_tag "Search", class: "search-button" %>
           </div>

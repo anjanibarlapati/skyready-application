@@ -40,11 +40,6 @@ function selectOption(inputId, value) {
 document.addEventListener("turbo:load", function () {
   document.querySelectorAll("input[data-dropdown-target]").forEach((input) => {
     input.addEventListener("input", () => filterDropdown(input.id));
-  });
-  document.querySelectorAll(".input-dropdown input").forEach((input) => {
-    input.addEventListener("input", function () {
-      filterDropdown(this.id);
-    });
 
     input.addEventListener("focus", function () {
       document.querySelectorAll(".dropdown-list").forEach((list) => {
@@ -118,5 +113,3 @@ if (form) {
 
 });
 
-window.filterDropdown = filterDropdown;
-window.selectOption = selectOption;
