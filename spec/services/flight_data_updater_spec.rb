@@ -4,8 +4,8 @@ RSpec.describe FlightDataUpdater do
   let(:test_data_path) { Rails.root.join("spec/fixtures/data/flight_data_updater.txt") }
   let(:original_lines) do
     [
-      "AI202,Air India,Delhi,Mumbai,2025-07-15,10:00,2025-07-15,12:00,100,10,50,20,20,15,100,4000,6000,8000",
-      "AI203,Air India,Delhi,Mumbai,2025-07-16,13:00,2025-07-16,15:00,100,5,50,10,20,10,80,4000,6000,8000",
+      "AI202,Air India,Delhi,Mumbai,2025-07-15,10:00,2025-07-15,12:00,100,10,50,20,20,15,4000,6000,8000",
+      "AI203,Air India,Delhi,Mumbai,2025-07-16,13:00,2025-07-16,15:00,100,5,50,10,20,10,4000,6000,8000",
       "LINE,WITH,FEW,FIELDS"
     ]
   end
@@ -31,7 +31,6 @@ RSpec.describe FlightDataUpdater do
 
       fields = read_fields
       expect(fields[class_index].to_i).to eq([ initial - 5, 0 ].max)
-      expect(fields[14].to_i).to eq(95)
     end
   end
 
@@ -45,7 +44,6 @@ RSpec.describe FlightDataUpdater do
 
       fields = read_fields
       expect(fields[9].to_i).to eq(0)
-      expect(fields[14].to_i).to eq(50)
     end
 
     it "does nothing if file doesn't exist" do
