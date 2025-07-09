@@ -5,7 +5,6 @@ on:
   push:
     branches: 
       - main
-      - update-data-write-operation
 
 jobs:
   scan_ruby:
