@@ -64,7 +64,7 @@ RSpec.describe FlightDataReader do
         expect(result.map { |f| f[:flight_number] }).not_to include("AI999")
       end
 
-      it "skips malformed data lines with incorrect number of fields" do
+      it "skips invalid data lines with incorrect number of fields" do
         File.open(test_data_path, "a") { |f| f.puts "BROKEN,LINE,WITH,TOO,FEW,FIELDS" }
         result = described_class.search("Delhi", "Mumbai")
         expect(result.none? { |f| f[:flight_number] == "BROKEN" }).to be true
@@ -76,6 +76,19 @@ RSpec.describe FlightDataReader do
         append_test_flight "AI400,Air India,Delhi,Mumbai,#{today},#{future_time},#{today},14:00,100,80,50,40,20,20,140,4000,6000,8000"
         result = described_class.search("Delhi", "Mumbai", today.to_s, 1, "Economic")
         expect(result.map { |f| f[:flight_number] }).to include("AI400")
+      end
+
+      it "excludes today's flights if departure time has already passed" do
+        past_time = (Time.now - 1.hour).strftime("%H:%M")
+        append_test_flight "AI307,Air India,Delhi,Mumbai,#{Date.today},#{past_time},#{Date.today},14:00,100,80,50,40,20,20,140,4000,6000,8000"
+        result = described_class.search("Delhi", "Mumbai", Date.today.to_s, 1, "Economic")
+        expect(result.map { |f| f[:flight_number] }).not_to include("AI307")
+      end
+
+      it "handles invalid date format for departure_date" do
+        result = described_class.search("Delhi", "Mumbai", "not-a-date", 1, "Economic")
+        expect(result).not_to be_empty
+        expect(result.all? { |f| f[:source] == "Delhi" && f[:destination] == "Mumbai" }).to be true
       end
     end
 
@@ -188,21 +201,5 @@ context "pricing strategy" do
     expect(flight[:price]).to eq(expected_price)
   end
 end
-
-
-    context "edge case: same-day past time flights" do
-      it "excludes today's flights if departure time has already passed" do
-        past_time = (Time.now - 1.hour).strftime("%H:%M")
-        append_test_flight "AI307,Air India,Delhi,Mumbai,#{Date.today},#{past_time},#{Date.today},14:00,100,80,50,40,20,20,140,4000,6000,8000"
-        result = described_class.search("Delhi", "Mumbai", Date.today.to_s, 1, "Economic")
-        expect(result.map { |f| f[:flight_number] }).not_to include("AI307")
-      end
-
-      it "handles invalid date format for departure_date gracefully" do
-        result = described_class.search("Delhi", "Mumbai", "not-a-date", 1, "Economic")
-        expect(result).not_to be_empty
-        expect(result.all? { |f| f[:source] == "Delhi" && f[:destination] == "Mumbai" }).to be true
-      end
-    end
   end
 end

@@ -60,7 +60,7 @@ RSpec.describe FlightDataUpdater do
       expect(File.readlines(test_data_path).map(&:strip)).to eq(original_lines)
     end
 
-    it "skips malformed lines and processes valid ones" do
+    it "skips invalid lines and processes valid ones" do
       expect {
         described_class.reduce_seats("AI202", "2025-07-15", "Economic", 1)
       }.not_to raise_error
