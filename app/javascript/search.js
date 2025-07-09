@@ -5,16 +5,9 @@ function filterDropdown(inputId) {
   const items = dropdown.getElementsByClassName("dropdown-item");
   dropdown.style.display = "block";
 
-  const otherInputId = inputId === "source-input" ? "destination-input" : "source-input";
-  const otherValue = document.getElementById(otherInputId).value;
-
   for (let i = 0; i < items.length; i++) {
     const txtValue = items[i].textContent || items[i].innerText;
 
-    if (txtValue === otherValue) {
-      items[i].style.display = "none";
-      continue;
-    }
 
     items[i].style.display =
       txtValue.toUpperCase().indexOf(filter) > -1 ? "" : "none";
@@ -84,16 +77,45 @@ document.addEventListener("turbo:load", function () {
   const sourceInput = document.getElementById("source-input");
   const destinationInput = document.getElementById("destination-input");
 
-  if (form) {
-    form.addEventListener("submit", function (e) {
-      const source = sourceInput.value.trim();
-      const destination = destinationInput.value.trim();
+if (form) {
+  form.addEventListener("submit", function (e) {
+    const source = sourceInput.value.trim();
+    const destination = destinationInput.value.trim();
 
-      if (source === "" && destination === "") {
-        e.preventDefault();
-      }
-    });
-  }
+    const validCities = [
+      "Delhi", "Mumbai", "Bengaluru", "Hyderabad", "Chennai",
+      "Kolkata", "Ahmedabad", "Pune", "Goa", "Jaipur"
+    ];
+
+    const matchedSource = validCities.find(city => city.toLowerCase() === source.toLowerCase());
+    const matchedDestination = validCities.find(city => city.toLowerCase() === destination.toLowerCase());
+
+    const errorDiv = document.getElementById("search-error");
+    errorDiv.textContent = "";
+
+    if (!source || !destination) {
+      e.preventDefault();
+      return;
+    }
+
+    if ((!matchedSource && source) || (!matchedDestination && destination)) {
+      e.preventDefault();
+      errorDiv.textContent = "Please select valid cities from dropdown.";
+      return;
+    }
+
+    if (matchedSource && matchedDestination && matchedSource === matchedDestination) {
+      e.preventDefault();
+      errorDiv.textContent = "Source and destination cannot be the same.";
+      return;
+    }
+
+    if (matchedSource) sourceInput.value = matchedSource;
+    if (matchedDestination) destinationInput.value = matchedDestination;
+  });
+}
+
+
 });
 
 window.filterDropdown = filterDropdown;
