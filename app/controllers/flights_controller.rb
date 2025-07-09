@@ -1,7 +1,7 @@
 class FlightsController < ApplicationController
   def book
     @flight = params[:flight]&.to_unsafe_h
-    redirect_to root_path, alert: "Flight data missing." unless @flight
+    redirect_to root_path unless @flight
   end
 
   def confirm

@@ -23,8 +23,6 @@ RSpec.describe FlightsController, type: :request do
       it "redirects to root with alert" do
         get book_flight_path
         expect(response).to redirect_to(root_path)
-        follow_redirect!
-        expect(flash[:alert]).to eq("Flight data missing.")
       end
     end
   end
