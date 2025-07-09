@@ -91,7 +91,7 @@ RSpec.describe FlightDataReader do
 
     describe "traveller count logic" do
       it "defaults to 1 for invalid counts" do
-        ["", nil, "abc", -5].each do |count|
+        [ "", nil, "abc", -5 ].each do |count|
           expect(described_class.search("Delhi", "Mumbai", Date.today.to_s, count)).not_to be_empty
         end
       end
@@ -104,7 +104,7 @@ RSpec.describe FlightDataReader do
 
     describe "class type validations" do
       it "defaults to Economic if blank or nil" do
-        [nil, ""].each do |ctype|
+        [ nil, "" ].each do |ctype|
           result = described_class.search("Delhi", "Mumbai", Date.today.to_s, 1, ctype)
           expect(result.map { |f| f[:flight_number] }).to include("AI202")
         end
