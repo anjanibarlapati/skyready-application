@@ -1,6 +1,19 @@
-<div class="input-dropdown">
-  <input type="text" id="<%= id %>" placeholder="<%= placeholder %>" value="<%= value %>" name="<%= local_assigns[:name] %>" data-dropdown-target="<%= id %>" autocomplete="off">
-  <div class="dropdown-list" id="<%= id %>-list">
+<div class="input-dropdown" style="position: relative; width: 100%;">
+  <input type="text"
+         id="<%= id %>"
+         name="<%= local_assigns[:name] %>"
+         placeholder="<%= placeholder %>"
+         value="<%= value %>"
+         autocomplete="off"
+         data-dropdown-target="<%= id %>"
+         class="dropdown-input"
+  >
+
+  <span class="dropdown-icon">
+    <%= image_tag 'dropdown-icon.png', id: 'dropdown' %>
+  </span>
+
+  <div class="dropdown-list" id="<%= id %>-list" style="display: none;">
     <% options.each do |city| %>
       <div class="dropdown-item" data-value="<%= city %>"><%= city %></div>
     <% end %>

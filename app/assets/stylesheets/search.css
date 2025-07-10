@@ -218,6 +218,25 @@
   pointer-events: none;
 }
 
+.dropdown-icon {
+  position: absolute;
+  right: -8px;
+  top: 50%;
+  transform: translateY(-50%);
+  height: 16px;
+  width: 16px;
+  pointer-events: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.dropdown-icon img {
+  height: 10px;
+  width: 10px;
+  object-fit: contain;
+}
+
 
 @media (max-width: 768px) {
   .input-fields-row {
