@@ -5,6 +5,7 @@ on:
   push:
     branches: 
       - main
+      - handle/concurrent-bookings
 
 jobs:
   scan_ruby:
