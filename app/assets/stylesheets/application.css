@@ -38,3 +38,23 @@ html {
   opacity: 0;
   visibility: hidden;
 }
+.flash-alert {
+  background-color: #fde2e2;         
+  color: #842029;              
+  padding: 15px 20px;
+  margin: 20px auto;
+  border-radius: 8px;
+  max-width: 600px;
+  text-align: center;
+  font-weight: bold;
+  font-family: 'Poppins', sans-serif;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+  transition: opacity 0.6s ease, visibility 0.6s ease;
+  opacity: 1;
+  visibility: visible;
+}
+
+.flash-alert.fade-out {
+  opacity: 0;
+  visibility: hidden;
+}

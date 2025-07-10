@@ -27,24 +27,38 @@
    <%= render "shared/header" %>
 
   <% if flash[:notice] %>
-    <div class="flash-notice" id="flashNotice">
-      <%= flash[:notice] %>
-    </div>
-  <% end %>
+  <div class="flash-message flash-notice" id="flashNotice">
+    <%= flash[:notice] %>
+  </div>
+<% elsif flash[:alert] %>
+  <div class="flash-message flash-alert" id="flashAlert">
+    <%= flash[:alert] %>
+  </div>
+<% end %>
+
 
   <%= yield %>
 
     <script>
-      document.addEventListener("turbo:load", () => {
-        const flash = document.getElementById("flashNotice");
-        if (flash) {
-          setTimeout(() => {
-            flash.classList.add("fade-out");
-            setTimeout(() => flash.remove(), 800);
-          }, 2000);
-        }
-      });
-    </script>
+  document.addEventListener("turbo:load", () => {
+    const notice = document.getElementById("flashNotice");
+    if (notice) {
+      setTimeout(() => {
+        notice.classList.add("fade-out");
+        setTimeout(() => notice.remove(), 800);
+      }, 2000);
+    }
+
+    const alert = document.getElementById("flashAlert");
+    if (alert) {
+      setTimeout(() => {
+        alert.classList.add("fade-out");
+        setTimeout(() => alert.remove(), 800);
+      }, 2000);
+    }
+  });
+</script>
+
     <%= render "shared/footer" %>
     
   </body>
