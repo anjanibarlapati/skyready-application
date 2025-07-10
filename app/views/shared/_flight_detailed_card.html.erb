@@ -1,0 +1,37 @@
+<div class="detailed-flight-card-container">
+  <div class="detailed-flight-details">
+    <div class='detailed-flight-block'>
+      <div class="detailed-icon">✈️ </div>
+      <div class="detailed-airline-info">
+        <span class="detailed-airline-name"><%= flight[:airline_name] %></span>
+        <span class="detailed-flight-number"><%= flight[:flight_number] %></span>
+      </div>
+    </div>
+
+
+    <div class="detailed-departure">
+        <span class="detailed-date"><%= Date.parse(flight[:departure_date]).strftime('%d, %B') %></span>
+        <span class="detailed-time"><%= flight[:departure_time] %></span>
+        <span class="detailed-city"><%= flight[:source] %></span>
+    </div>
+
+    <div class="detailed-journey-path">
+      <span class="detailed-duration">
+        <%= journey_duration(flight[:departure_date], flight[:departure_time], flight[:arrival_date], flight[:arrival_time]) %>
+      </span>
+      <%= image_tag 'line-segment.png', class: 'detailed-line-img' %>
+    </div>
+
+    <div class="detailed-arrival">
+        <span class="detailed-date"><%= Date.parse(flight[:arrival_date]).strftime('%d, %B') %></span>
+        <span class="detailed-time"><%= flight[:arrival_time] %></span>
+        <span class="detailed-city"><%= flight[:destination] %></span>
+    </div>
+
+    <div class="detailed-price">
+      <span class="detailed-label">Price</span>
+      <span class="detailed-value">₹ <%= number_with_delimiter(flight[:price]) %></span>
+    </div>
+  </div>
+</div>
+
