@@ -7,6 +7,9 @@ RSpec.describe FlightsController, type: :request do
         {
           flight_number: "AI202",
           departure_date: "2025-07-20",
+          departure_time: "10:00",
+          arrival_date: "2025-07-20",
+          arrival_time: "14:00",
           class_type: "Economic",
           travellers_count: 2
         }
