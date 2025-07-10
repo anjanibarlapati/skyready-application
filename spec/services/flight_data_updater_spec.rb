@@ -26,9 +26,10 @@ RSpec.describe FlightDataUpdater do
   end
 
   shared_examples "seat reducer" do |class_type, class_index, initial|
-    it "reduces #{class_type} seats and total seats correctly" do
-      described_class.reduce_seats("AI202", "2025-07-15", class_type, 5)
+    it "reduces #{class_type} seats and returns true" do
+      result = described_class.reduce_seats("AI202", "2025-07-15", class_type, 5)
 
+      expect(result).to be true
       fields = read_fields
       expect(fields[class_index].to_i).to eq([ initial - 5, 0 ].max)
     end
@@ -39,32 +40,60 @@ RSpec.describe FlightDataUpdater do
     include_examples "seat reducer", "Second Class", 11, 20
     include_examples "seat reducer", "First Class", 13, 15
 
-    it "does not reduce below 0 seats" do
-      described_class.reduce_seats("AI202", "2025-07-15", "Economic", 50)
+    it "does not reduce or update if seats are insufficient and returns false" do
+      result = described_class.reduce_seats("AI202", "2025-07-15", "Economic", 50)
 
+      expect(result).to be false
       fields = read_fields
-      expect(fields[9].to_i).to eq(0)
+      expect(fields[9].to_i).to eq(10) # unchanged
     end
 
-    it "does nothing if file doesn't exist" do
+    it "returns false if file doesn't exist" do
       stub_const("#{described_class}::FLIGHT_DATA_PATH", Rails.root.join("nonexistent.txt"))
+      result = nil
+
       expect {
-        described_class.reduce_seats("AI202", "2025-07-15", "Economic", 1)
+        result = described_class.reduce_seats("AI202", "2025-07-15", "Economic", 1)
       }.not_to raise_error
+
+      expect(result).to be false
     end
 
-    it "leaves the file unchanged if flight number or date does not match" do
-      described_class.reduce_seats("WRONG", "2025-07-15", "Economic", 1)
+    it "returns false and leaves file unchanged if flight number or date does not match" do
+      result = described_class.reduce_seats("WRONG", "2025-07-15", "Economic", 1)
+
+      expect(result).to be false
       expect(File.readlines(test_data_path).map(&:strip)).to eq(original_lines)
     end
 
-    it "skips invalid lines and processes valid ones" do
-      expect {
-        described_class.reduce_seats("AI202", "2025-07-15", "Economic", 1)
-      }.not_to raise_error
+    it "returns true and skips invalid lines while processing valid ones" do
+      result = described_class.reduce_seats("AI202", "2025-07-15", "Economic", 1)
 
+      expect(result).to be true
       expect(read_fields[9].to_i).to eq(9)
     end
+    it "rewrites the updated line correctly in the output file" do
+  result = described_class.reduce_seats("AI202", "2025-07-15", "Economic", 3)
+
+  expect(result).to be true
+  updated_line = File.readlines(test_data_path).first.strip
+  fields = updated_line.split(",")
+
+  expect(fields[0]).to eq("AI202")
+  expect(fields[4]).to eq("2025-07-15")
+  expect(fields[9].to_i).to eq(7)
+  expect(updated_line).to eq("AI202,Air India,Delhi,Mumbai,2025-07-15,10:00,2025-07-15,12:00,100,7,50,20,20,15,4000,6000,8000")
+end
+it "returns false when class_type is invalid (hits else case with available = 0)" do
+  result = described_class.reduce_seats("AI202", "2025-07-15", "Business", 1)
+
+  expect(result).to be false
+
+  current_lines = File.readlines(test_data_path).map(&:strip)
+  expect(current_lines).to eq(original_lines)
+end
+
+
 
     it "removes the temp file after successful update" do
       described_class.reduce_seats("AI202", "2025-07-15", "Economic", 1)
