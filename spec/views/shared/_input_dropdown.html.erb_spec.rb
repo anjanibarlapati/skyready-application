@@ -5,36 +5,43 @@ RSpec.describe "shared/_input_dropdown.html.erb", type: :view do
     it "renders input dropdown with correct id, placeholder, name, value and options" do
       render partial: "shared/input_dropdown", locals: {
         id: "source-input",
-        placeholder: "Enter source city",
+        placeholder: "Enter source",
         name: "source",
         value: "Delhi",
         options: [ "Delhi", "Mumbai", "Bengaluru" ]
       }
 
-      expect(rendered).to have_selector("input#source-input[placeholder='Enter source city'][name='source'][value='Delhi']")
+      expect(rendered).to have_selector("input#source-input[placeholder='Enter source'][name='source'][value='Delhi']")
       expect(rendered).to have_selector("input[data-dropdown-target='source-input']")
 
-      expect(rendered).to have_selector("div#source-input-list.dropdown-list")
+      expect(rendered).to have_selector("div#source-input-list.dropdown-list", visible: false)
 
-      expect(rendered).to have_selector(".dropdown-item", text: "Delhi")
-      expect(rendered).to have_selector(".dropdown-item", text: "Mumbai")
-      expect(rendered).to have_selector(".dropdown-item", text: "Bengaluru")
+      [ "Delhi", "Mumbai", "Bengaluru" ].each do |city|
+        expect(rendered).to have_selector(".dropdown-item", text: city, visible: false)
+      end
+
+      expect(rendered).to have_selector("span.dropdown-icon img[src*='dropdown-icon']", visible: false)
     end
   end
 
   context "when options are empty" do
-    it "renders dropdown list with no options" do
+    it "renders input dropdown with no options" do
       render partial: "shared/input_dropdown", locals: {
         id: "destination-input",
-        placeholder: "Enter destination city",
+        placeholder: "Enter destination",
         name: "destination",
         value: "",
         options: []
       }
 
-      expect(rendered).to have_selector("input#destination-input[placeholder='Enter destination city'][name='destination'][value='']")
-      expect(rendered).to have_selector("div#destination-input-list.dropdown-list")
+      expect(rendered).to have_selector("input#destination-input[placeholder='Enter destination'][name='destination'][value='']")
+      expect(rendered).to have_selector("input[data-dropdown-target='destination-input']")
+
+      expect(rendered).to have_selector("div#destination-input-list.dropdown-list", visible: false)
+
       expect(rendered).not_to have_selector(".dropdown-item")
+
+      expect(rendered).to have_selector("span.dropdown-icon img[src*='dropdown-icon']", visible: false)
     end
   end
 end
