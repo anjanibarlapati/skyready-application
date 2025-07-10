@@ -7,6 +7,7 @@
  *= require /search
  *= require /flight_result_card
   *= require /book
+  *= require /flight_details_card
  */
 
 body {
