@@ -23,8 +23,8 @@ RSpec.describe "flights/book.html.erb", type: :view do
     render
   end
 
-  it "renders the flight_result_card partial with flight and hide_book_button: true" do
-    expect(view).to render_template(partial: "shared/_flight_result_card", locals: { flight: flight, hide_book_button: true })
+  it "renders the flight_detailed_card partial with flight" do
+    expect(view).to render_template(partial: "shared/_flight_detailed_card", locals: { flight: flight })
   end
 
   it "displays the Fare Summary header" do
