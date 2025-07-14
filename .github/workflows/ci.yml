@@ -5,7 +5,7 @@ on:
   push:
     branches: 
       - main
-      - enhance/booking-page
+      - fetch-cities
 
 jobs:
   scan_ruby:
