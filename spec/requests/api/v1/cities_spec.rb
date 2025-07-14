@@ -33,11 +33,11 @@ RSpec.describe "Api::V1::Cities", type: :request do
 
       json = JSON.parse(response.body)
 
-      expect(json).to eq(["Bengaluru", "Delhi", "Goa", "Mumbai"])
+      expect(json).to eq([ "Bengaluru", "Delhi", "Goa", "Mumbai" ])
     end
 
     it "returns an empty array if file is empty" do
-      File.write(test_data_path, "") 
+      File.write(test_data_path, "")
 
       get "/api/v1/cities"
 
@@ -70,7 +70,7 @@ RSpec.describe "Api::V1::Cities", type: :request do
       expect(response).to have_http_status(:success)
 
       json = JSON.parse(response.body)
-      expect(json).to eq(["Bengaluru", "Delhi", "Mumbai"])
+      expect(json).to eq([ "Bengaluru", "Delhi", "Mumbai" ])
     end
   end
 end

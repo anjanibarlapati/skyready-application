@@ -9,7 +9,7 @@ Rails.application.routes.draw do
   post "flights/confirm", to: "flights#confirm", as: :confirm_flight
   namespace :api do
     namespace :v1 do
-      resources :cities, only: [:index]
+      resources :cities, only: [ :index ]
     end
   end
 

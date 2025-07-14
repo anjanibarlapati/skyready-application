@@ -6,7 +6,7 @@ module Api
 
         File.foreach(file_path) do |line|
           next if line.strip.empty?
-          data = line.strip.split(',')
+          data = line.strip.split(",")
           next if data.size < 4
           from_city = data[2]
           to_city = data[3]
