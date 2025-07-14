@@ -7,6 +7,11 @@ Rails.application.routes.draw do
   root "home#index"
   get "/flights/book", to: "flights#book", as: "book_flight"
   post "flights/confirm", to: "flights#confirm", as: :confirm_flight
+  namespace :api do
+    namespace :v1 do
+      resources :cities, only: [:index]
+    end
+  end
 
   # Render dynamic PWA files from app/views/pwa/* (remember to link manifest in application.html.erb)
   # get "manifest" => "rails/pwa#manifest", as: :pwa_manifest
