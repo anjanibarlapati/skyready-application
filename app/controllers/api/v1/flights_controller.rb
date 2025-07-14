@@ -19,7 +19,7 @@ module Api
         rescue ArgumentError
           return render json: { error: "Invalid departure date format." }, status: :bad_request
         end
-        valid_classes = ["Economic", "Second Class", "First Class"]
+        valid_classes = [ "Economic", "Second Class", "First Class" ]
         unless valid_classes.include?(class_type)
           return render json: { error: "Invalid class type. Allowed values: #{valid_classes.join(', ')}" }, status: :bad_request
         end
