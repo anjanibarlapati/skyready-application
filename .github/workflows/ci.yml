@@ -5,7 +5,7 @@ on:
   push:
     branches: 
       - main
-      - fetch-cities
+      - feature/search-flights
 
 jobs:
   scan_ruby:
