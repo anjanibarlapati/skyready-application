@@ -1,19 +1,18 @@
 class FlightDataReader
   FLIGHT_DATA_PATH = Rails.root.join("app/assets/data/data.txt")
 
-  def self.search(source, destination, departure_date = nil, travellers_count = 1, class_type = "Economic")
-    return [] unless File.exist?(FLIGHT_DATA_PATH)
-    class_type = class_type.presence || "Economic"
+  def self.search(source, destination, departure_date, travellers_count, class_type)
+    return { flights: [], found_route: false, found_date: false, seats_available: false } unless File.exist?(FLIGHT_DATA_PATH)
+
+  found_route = false
+  found_date = false
+  seats_available = false
 
     today = Date.today
     now = Time.now
     current_time = now.strftime("%H:%M")
 
-    search_date = Date.parse(departure_date) rescue nil if departure_date.present?
-    travellers_count = (travellers_count.presence || 1).to_i
-    travellers_count = 1 if travellers_count < 1
-
-    File.readlines(FLIGHT_DATA_PATH).filter_map do |line|
+    flights = File.readlines(FLIGHT_DATA_PATH).filter_map do |line|
       fields = line.strip.split(",").map(&:strip)
       next unless fields.size == 17
 
@@ -25,34 +24,37 @@ class FlightDataReader
       economic_price_str, second_class_price_str, first_class_price_str = fields
 
       class_total = {
-        "Economic" => economic_total_str.to_i,
+        "Economy" => economic_total_str.to_i,
         "Second Class" => second_total_str.to_i,
         "First Class" => first_total_str.to_i
       }
 
       class_available = {
-        "Economic" => economic_available_str.to_i,
+        "Economy" => economic_available_str.to_i,
         "Second Class" => second_available_str.to_i,
         "First Class" => first_available_str.to_i
       }
 
       class_prices = {
-        "Economic" => economic_price_str.to_i,
+        "Economy" => economic_price_str.to_i,
         "Second Class" => second_class_price_str.to_i,
         "First Class" => first_class_price_str.to_i
       }
-      next unless class_available.key?(class_type)
       next unless from.casecmp(source).zero? && to.casecmp(destination).zero?
-      next if class_available[class_type] < travellers_count
+      found_route = true
 
       dep_date = Date.parse(dep_date_str) rescue next
       arr_date = Date.parse(arr_date_str) rescue next
-      next if search_date.present? && dep_date != search_date
-      if search_date == today && dep_date == today
-        flight_time = Time.parse("#{dep_date_str} #{dep_time}") rescue nil
+      next if dep_date != departure_date
+      found_date = true
+      flight_time = Time.parse("#{dep_date_str} #{dep_time}") rescue next
+
+      if departure_date == today
         next if flight_time && flight_time <= now
       end
 
+    next if class_available[class_type] < travellers_count
+      seats_available = true
 
     total_seats = class_total[class_type]
     available_seats = class_available[class_type]
@@ -73,8 +75,7 @@ class FlightDataReader
       end
 
     begin
-      dep_datetime = Time.parse("#{dep_date_str} #{dep_time}")
-      days_before_departure = ((dep_datetime - now) / 86400.0).floor
+      days_before_departure = ((flight_time - now) / 86400.0).floor
     rescue ArgumentError
       next
     end
@@ -97,7 +98,6 @@ class FlightDataReader
 
 
       date_diff = (arr_date - dep_date).to_i
-
       {
         flight_number: flight_number,
         airline_name: airline_name,
@@ -114,6 +114,8 @@ class FlightDataReader
         travellers_count: travellers_count,
         class_type: class_type
       }
+
     end
-  end
+    { flights: flights, found_route: found_route, found_date: found_date, seats_available: seats_available }
+end
 end
