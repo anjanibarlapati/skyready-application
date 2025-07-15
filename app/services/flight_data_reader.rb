@@ -114,7 +114,6 @@ class FlightDataReader
         travellers_count: travellers_count,
         class_type: class_type
       }
-
     end
     { flights: flights, found_route: found_route, found_date: found_date, seats_available: seats_available }
 end

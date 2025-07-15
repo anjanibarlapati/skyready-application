@@ -17,7 +17,7 @@ RSpec.describe "Api::V1::FlightsController", type: :request do
     context "with valid parameters" do
       it "returns success with flights" do
         allow(FlightDataReader).to receive(:search).and_return({
-          flights: [{ flight_number: "AI101" }],
+          flights: [ { flight_number: "AI101" } ],
           found_route: true,
           found_date: true,
           seats_available: true

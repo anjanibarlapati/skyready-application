@@ -4,7 +4,6 @@ module Api
       protect_from_forgery with: :null_session
 
       def search
-
         source      = params[:source]&.strip
         destination = params[:destination]&.strip
         class_type  = (params[:class_type] || "Economy").strip
@@ -12,7 +11,7 @@ module Api
         if source.blank? || destination.blank?
           return render json: { message: "Source and destination are required" }, status: :unprocessable_entity
         end
-        
+
 
         travellers_count = params[:travellers_count].to_i
         travellers_count = 1 if travellers_count <= 0
@@ -25,7 +24,7 @@ module Api
             return render json: { message: "Invalid departure date format" }, status: :bad_request
           end
 
-        valid_classes = ["Economy", "Second Class", "First Class"]
+        valid_classes = [ "Economy", "Second Class", "First Class" ]
         class_type = "Economy" unless valid_classes.include?(class_type)
 
          begin
@@ -47,7 +46,7 @@ module Api
         rescue => e
           render json: { message: "Failed to retrieve flight data. Please try again later." }, status: :internal_server_error
         end
-      end 
-    end  
-  end   
-end   
+      end
+    end
+  end
+end
