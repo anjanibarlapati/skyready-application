@@ -122,6 +122,5 @@ RSpec.describe "Api::V1::FlightsController", type: :request do
         expect(JSON.parse(response.body)["message"]).to eq("Travellers count should be in between 1 to 9")
       end
     end
-
   end
 end
