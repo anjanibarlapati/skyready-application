@@ -108,14 +108,14 @@ RSpec.describe FlightDataReader do
       append_test_flight "AI410,Air India,Delhi,Mumbai,#{Date.today + 10},12:00,#{Date.today + 10},14:00,100,80,50,40,20,20,#{base_price},6000,8000"
       result = described_class.search("Delhi", "Mumbai", Date.today + 10, 1, "Economy")
       flight = result[:flights].find { |f| f[:flight_number] == "AI410" }
-      expect(flight[:price]).to eq((base_price * 1.02).to_i) 
+      expect(flight[:price]).to eq((base_price * 1.02).to_i)
     end
 
     it "applies 12% date multiplier for 5 days before departure" do
       append_test_flight "AI411,Air India,Delhi,Mumbai,#{Date.today + 5},12:00,#{Date.today + 5},14:00,100,80,50,40,20,20,#{base_price},6000,8000"
       result = described_class.search("Delhi", "Mumbai", Date.today + 5, 1, "Economy")
       flight = result[:flights].find { |f| f[:flight_number] == "AI411" }
-      expect(flight[:price]).to eq((base_price * 1.12).to_i) 
+      expect(flight[:price]).to eq((base_price * 1.12).to_i)
     end
 
     it "applies no date multiplier for flights more than 10 days away" do
