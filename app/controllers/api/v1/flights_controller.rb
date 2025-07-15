@@ -11,9 +11,17 @@ module Api
         if source.blank? || destination.blank?
           return render json: { message: "Source and destination are required" }, status: :unprocessable_entity
         end
-
+        if source ==  destination
+          return render json: { message: "Source and destination cannot be same" }, status: :unprocessable_entity
+        end
+        
 
         travellers_count = params[:travellers_count].to_i
+
+        if travellers_count > 9
+          return render json: { message: "Travellers count should be in between 1 to 9" }, status: :unprocessable_entity
+        end
+        
         travellers_count = 1 if travellers_count <= 0
 
         departure_date = params[:departure_date]

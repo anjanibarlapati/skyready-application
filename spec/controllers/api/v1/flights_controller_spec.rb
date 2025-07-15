@@ -106,5 +106,22 @@ RSpec.describe "Api::V1::FlightsController", type: :request do
         expect(JSON.parse(response.body)["message"]).to eq("Failed to retrieve flight data. Please try again later.")
       end
     end
+
+    context "when source and destination are same" do
+      it "returns 422 with appropriate error message" do
+        post base_path, params: valid_params.merge(destination: "Delhi")
+        expect(response).to have_http_status(:unprocessable_entity)
+        expect(JSON.parse(response.body)["message"]).to eq("Source and destination cannot be same")
+      end
+    end
+
+    context "when travellers count is more than 9" do
+      it "returns 422 with appropriate error message" do
+        post base_path, params: valid_params.merge(travellers_count: 10)
+        expect(response).to have_http_status(:unprocessable_entity)
+        expect(JSON.parse(response.body)["message"]).to eq("Travellers count should be in between 1 to 9")
+      end
+    end
+
   end
 end
