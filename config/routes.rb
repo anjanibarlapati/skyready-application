@@ -11,6 +11,7 @@ Rails.application.routes.draw do
     namespace :v1 do
       resources :cities, only: [ :index ]
        post "flights/search", to: "flights#search"
+       post "flights/confirm-booking", to: "flights#confirm_booking"
     end
   end
 
