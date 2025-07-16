@@ -14,9 +14,12 @@ class FlightDataUpdater
         File.foreach(FLIGHT_DATA_PATH) do |line|
           fields = line.strip.split(",").map(&:strip)
 
-          if fields.size == 17 && fields[0] == flight_number && fields[4] == departure_date
+          departure_dt_str = "#{fields[4]} #{fields[5]}"
+          departure_dt = DateTime.parse(departure_dt_str) rescue next
+
+          if fields.size == 17 && fields[0] == flight_number && departure_date == departure_dt
             available = case class_type
-            when "Economic"     then fields[9].to_i
+            when "Economy"     then fields[9].to_i
             when "Second Class" then fields[11].to_i
             when "First Class"  then fields[13].to_i
             else 0
@@ -24,7 +27,7 @@ class FlightDataUpdater
 
             if available >= travellers_count
               case class_type
-              when "Economic"
+              when "Economy"
                 fields[9]  = (available - travellers_count).to_s
               when "Second Class"
                 fields[11] = (available - travellers_count).to_s
@@ -50,7 +53,7 @@ class FlightDataUpdater
       updated
     rescue => e
       File.delete(temp_path) if File.exist?(temp_path)
-      raise e
+      false
     end
   end
 end
