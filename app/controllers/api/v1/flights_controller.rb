@@ -55,6 +55,53 @@ module Api
           render json: { message: "Failed to retrieve flight data. Please try again later." }, status: :internal_server_error
         end
       end
+
+    def confirm_booking
+        flight = params[:flight]
+
+        unless flight.present?
+          return render json: { message: "Flight data is required" }, status: :bad_request
+        end
+
+        flight_number     = flight[:flight_number]&.strip
+        departure_date    = flight[:departure_date]
+        class_type        = (flight[:class_type]).strip
+        travellers_count  = flight[:travellers_count].to_i
+
+        if flight_number.blank? || departure_date.blank?
+          return render json: { message: "Flight number and departure date are required" }, status: :unprocessable_entity
+        end
+
+        begin
+          parsed_date = DateTime.parse(departure_date)
+        rescue ArgumentError
+          return render json: { message: "Invalid departure date format" }, status: :bad_request
+        end
+
+        valid_classes = [ "Economy", "Second Class", "First Class" ]
+        class_type = "Economy" unless valid_classes.include?(class_type)
+
+        if travellers_count <= 0 || travellers_count > 9
+          return render json: { message: "Travelers count should be between 1 and 9" }, status: :unprocessable_entity
+        end
+
+        begin
+          is_success = FlightDataUpdater.reduce_seats(
+            flight_number,
+            parsed_date,
+            class_type,
+            travellers_count
+          )
+
+          if is_success
+            render json: { message: "Booking confirmed" }, status: :ok
+          else
+            render json: { message: "Booking failed. Please try again or select a different flight" }, status: :conflict
+          end
+        rescue => e
+          render json: { message: "Failed to book. Please try again later" }, status: :internal_server_error
+        end
+      end
     end
   end
 end
