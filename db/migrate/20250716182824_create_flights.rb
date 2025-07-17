@@ -10,6 +10,6 @@ class CreateFlights < ActiveRecord::Migration[7.1]
       t.timestamps
     end
 
-    add_index :flights, [:flight_number, :departure_datetime]
+    add_index :flights, [ :flight_number, :departure_datetime ]
   end
 end
