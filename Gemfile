@@ -40,6 +40,7 @@ group :development, :test do
   gem "brakeman", require: false
   gem "pg"
   gem "dotenv-rails"
+  gem "factory_bot_rails"
 
 
   # Omakase Ruby styling [https://github.com/rails/rubocop-rails-omakase/]
@@ -57,6 +58,7 @@ group :test do
   gem "selenium-webdriver"
   gem "simplecov", require: false
   gem "rails-controller-testing"
+  gem "shoulda-matchers", "~> 5.0"
 end
 
 gem "rspec-rails", "~> 8.0", groups: [ :development, :test ]
