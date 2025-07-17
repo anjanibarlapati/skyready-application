@@ -1,8 +1,6 @@
 module Api
   module V1
-    class FlightsController < ApplicationController
-      protect_from_forgery with: :null_session
-
+    class FlightsController < Api::BaseController
       def search
         source      = params[:source]&.strip
         destination = params[:destination]&.strip
