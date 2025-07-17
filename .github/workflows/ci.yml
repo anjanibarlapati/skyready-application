@@ -58,6 +58,25 @@ jobs:
 
   test:
     runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:13
+        ports: ['5432:5432']
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: password
+        options: >-
+          --health-cmd="pg_isready"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
+
+    env:
+      RAILS_ENV: test
+      PG_USERNAME: postgres
+      PG_PASSWORD: password
+      PG_HOST: localhost
+      PG_PORT: 5432
 
     steps:
       - name: Install packages
@@ -72,9 +91,12 @@ jobs:
           ruby-version: .ruby-version
           bundler-cache: true
 
+      - name: Setup database
+        run: |
+          cp config/database.yml config/database.yml.bak
+          bundle exec rails db:create db:schema:load
+
       - name: Run RSpec tests
-        env:
-          RAILS_ENV: test
         run: bundle exec rspec
 
       - name: Keep screenshots from failed system tests
