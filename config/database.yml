@@ -1,0 +1,17 @@
+default: &default
+  adapter: postgresql
+  encoding: unicode
+  pool: 5
+  username: <%= ENV.fetch("PG_USERNAME") %>
+  password: <%= ENV.fetch("PG_PASSWORD") %>
+  host: <%= ENV.fetch("PG_HOST") %>
+  port: 5432
+
+development:
+  <<: *default
+  database: skyready
+
+test:
+  <<: *default
+  database: skyready_test
+  host: localhost
