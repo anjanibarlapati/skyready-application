@@ -77,7 +77,8 @@ module Api
         end
 
         begin
-          parsed_date = DateTime.parse(departure_date)
+          parsed_date = Time.zone.parse(departure_date).strftime("%Y-%m-%d %H:%M:%S")
+
         rescue ArgumentError
           return render json: { message: "Invalid departure date format" }, status: :bad_request
         end
@@ -90,7 +91,7 @@ module Api
         end
 
         begin
-          is_success = FlightDataUpdater.reduce_seats(
+          is_success = FlightService.reduce_seats(
             flight_number,
             parsed_date,
             class_type,
