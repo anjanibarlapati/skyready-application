@@ -13,7 +13,12 @@ RSpec.describe FlightSeat, type: :model do
 
     it do
       should validate_inclusion_of(:class_type).
-        in_array([ "Economy", "First Class", "Second Class" ])
+        in_array(["Economy", "First Class", "Second Class"])
+    end
+
+    it do
+      should validate_numericality_of(:available_seats).
+        is_greater_than_or_equal_to(0)
     end
   end
 end
