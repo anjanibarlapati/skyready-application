@@ -5,6 +5,7 @@ on:
   push:
     branches: 
       - main
+      - update/seat-booking
 
 jobs:
   scan_ruby:
