@@ -42,9 +42,8 @@ RSpec.describe "Api::V1::FlightsController", type: :request do
         expect(response).to have_http_status(:unprocessable_entity)
         expect(JSON.parse(response.body)["message"]).to eq("Flight number and departure date are required")
       end
-     
     end
-   
+
     context "when travellers_count is out of range" do
       it "returns 422 if travellers_count is zero" do
         params = { flight: valid_booking_params[:flight].merge(travellers_count: 0) }

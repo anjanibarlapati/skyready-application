@@ -13,7 +13,7 @@ RSpec.describe FlightSeat, type: :model do
 
     it do
       should validate_inclusion_of(:class_type).
-        in_array(["Economy", "First Class", "Second Class"])
+        in_array([ "Economy", "First Class", "Second Class" ])
     end
 
     it do
