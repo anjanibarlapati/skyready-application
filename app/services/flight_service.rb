@@ -14,7 +14,7 @@ class FlightService
 
     found_route = db_flights.exists?
 
-    
+
 
     db_flights.each do |flight|
       next unless flight.departure_datetime.to_date == departure_date
@@ -23,7 +23,7 @@ class FlightService
         next
       end
 
-      
+
       found_date = true
 
 
@@ -48,8 +48,8 @@ class FlightService
         else
           1.5
         end
-      
-      
+
+
       begin
         days_before_departure = ((flight.departure_datetime - Time.current) / 86400.0).floor
       rescue ArgumentError

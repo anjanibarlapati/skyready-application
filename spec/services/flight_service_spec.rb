@@ -118,10 +118,10 @@ RSpec.describe FlightService do
         flight.update!(departure_datetime: Time.current + 20.days)
 
         result = FlightService.search("Delhi", "Mumbai", flight.departure_datetime, 1, "Economy")
-        
+
         price = result[:flights].first[:price]
 
-        expected_price = (5000 + (5000 * 0.35)).to_i 
+        expected_price = (5000 + (5000 * 0.35)).to_i
         expect(price).to eq(expected_price)
       end
 
