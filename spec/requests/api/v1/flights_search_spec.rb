@@ -1,6 +1,6 @@
 require 'rails_helper'
 
-RSpec.describe "Api::V1::FlightsController", type: :request do
+RSpec.describe "Api::V1::FlightsSearchController", type: :request do
   let(:base_path) { "/api/v1/flights/search" }
 
   let(:valid_params) do
@@ -13,10 +13,10 @@ RSpec.describe "Api::V1::FlightsController", type: :request do
     }
   end
 
-  describe "POST #{'/api/v1/flights/search'}" do
+  describe "POST /api/v1/flights/search" do
     context "with valid parameters" do
       it "returns success with flights" do
-        allow(FlightService).to receive(:search).and_return({
+        allow(FlightSearchService).to receive(:search).and_return({
           flights: [ { flight_number: "AI101" } ],
           found_route: true,
           found_date: true,
@@ -44,6 +44,14 @@ RSpec.describe "Api::V1::FlightsController", type: :request do
       end
     end
 
+    context "when source and destination are same" do
+      it "returns 400 with appropriate error message" do
+        post base_path, params: valid_params.merge(destination: "Delhi")
+        expect(response).to have_http_status(:bad_request)
+        expect(JSON.parse(response.body)["message"]).to eq("Source and destination cannot be same")
+      end
+    end
+
     context "when departure_date format is invalid" do
       it "returns 400 with error message" do
         post base_path, params: valid_params.merge(departure_date: [])
@@ -51,9 +59,18 @@ RSpec.describe "Api::V1::FlightsController", type: :request do
         expect(JSON.parse(response.body)["message"]).to eq("Invalid departure date format")
       end
     end
+
+    context "when travellers count is more than 9" do
+      it "returns 422 with appropriate error message" do
+        post base_path, params: valid_params.merge(travellers_count: 10)
+        expect(response).to have_http_status(:unprocessable_entity)
+        expect(JSON.parse(response.body)["message"]).to eq("Travellers count should be in between 1 to 9")
+      end
+    end
+
     context "when route is not found" do
       it "returns 404 with appropriate message" do
-        allow(FlightService).to receive(:search).and_return({
+        allow(FlightSearchService).to receive(:search).and_return({
           flights: [],
           found_route: false,
           found_date: false,
@@ -68,7 +85,7 @@ RSpec.describe "Api::V1::FlightsController", type: :request do
 
     context "when date is not available" do
       it "returns 409 with appropriate message" do
-        allow(FlightService).to receive(:search).and_return({
+        allow(FlightSearchService).to receive(:search).and_return({
           flights: [],
           found_route: true,
           found_date: false,
@@ -83,7 +100,7 @@ RSpec.describe "Api::V1::FlightsController", type: :request do
 
     context "when seats are unavailable" do
       it "returns 409 with appropriate message" do
-        allow(FlightService).to receive(:search).and_return({
+        allow(FlightSearchService).to receive(:search).and_return({
           flights: [],
           found_route: true,
           found_date: true,
@@ -98,27 +115,11 @@ RSpec.describe "Api::V1::FlightsController", type: :request do
 
     context "when internal error occurs" do
       it "returns 500 with generic message" do
-        allow(FlightService).to receive(:search).and_raise(StandardError.new("unexpected"))
+        allow(FlightSearchService).to receive(:search).and_raise(StandardError.new("unexpected"))
 
         post base_path, params: valid_params
         expect(response).to have_http_status(:internal_server_error)
         expect(JSON.parse(response.body)["message"]).to eq("Failed to retrieve flight data. Please try again later.")
-      end
-    end
-
-    context "when source and destination are same" do
-      it "returns 400 with appropriate error message" do
-        post base_path, params: valid_params.merge(destination: "Delhi")
-        expect(response).to have_http_status(:bad_request)
-        expect(JSON.parse(response.body)["message"]).to eq("Source and destination cannot be same")
-      end
-    end
-
-    context "when travellers count is more than 9" do
-      it "returns 422 with appropriate error message" do
-        post base_path, params: valid_params.merge(travellers_count: 10)
-        expect(response).to have_http_status(:unprocessable_entity)
-        expect(JSON.parse(response.body)["message"]).to eq("Travellers count should be in between 1 to 9")
       end
     end
   end
