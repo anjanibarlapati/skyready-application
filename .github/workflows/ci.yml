@@ -5,7 +5,7 @@ on:
   push:
     branches: 
       - main
-      - update/seat-booking
+      - refactor-controllers
 
 jobs:
   scan_ruby:
