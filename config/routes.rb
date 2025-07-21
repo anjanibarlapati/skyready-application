@@ -7,8 +7,8 @@ Rails.application.routes.draw do
   namespace :api do
     namespace :v1 do
       resources :cities, only: [ :index ]
-       post "flights/search", to: "flights#search"
-       post "flights/confirm-booking", to: "flights#confirm_booking"
+       post "flights/search", to: "flights_search#search"
+       post "flights/confirm-booking", to: "flights_booking#confirm_booking"
     end
   end
 
