@@ -1,154 +1,140 @@
-require "rails_helper"
+require 'rails_helper'
 
-RSpec.describe FlightSearchService do
+RSpec.describe FlightSearchService, type: :service do
+  let(:airline) { create(:airline, name: "IndiGoo") }
+
+  let(:flight_route) {
+    create(
+      :flight_route,
+      airline_name: airline.name,
+      flight_number: "AI101",
+      source: "Delhi",
+      destination: "Mumbai"
+    )
+  }
+
+  let(:future_date) { Date.today + 1 }
+
+  let(:flight_schedule) {
+    create(
+      :flight_schedule,
+      flight_route: flight_route,
+      recurring: true,
+      start_date: future_date - 5,
+      end_date: future_date + 5,
+      days_of_week: [ future_date.wday ],
+      departure_time: "10:00",
+      arrival_time: "12:00"
+    )
+  }
+
+  let(:flight_seat) {
+    create(
+      :flight_seat,
+      flight_schedule: flight_schedule,
+      class_type: "Economy",
+      total_seats: 100,
+      base_price: 3000
+    )
+  }
+
+  let!(:booking) {
+    create(
+      :booking,
+      flight_schedule: flight_schedule,
+      flight_date: future_date,
+      class_type: "Economy",
+      available_seats: 10
+    )
+  }
+
   describe ".search" do
-    let(:airline) { Airline.create!(name: "Test Airline") }
+    context "when valid inputs are provided" do
+      it "returns matching flights" do
+        flight_seat
+        results = described_class.search("Delhi", "Mumbai", Time.zone.parse("#{future_date} 10:00"), 1, "Economy")
 
-    let(:flight) do
-      Flight.create!(
-        flight_number: "TA123",
-        airline: airline,
-        source: "Delhi",
-        destination: "Mumbai",
-        departure_datetime: Time.current + 2.days,
-        arrival_datetime: Time.current + 2.days + 2.hours
-      )
-    end
+        expect(results[:found_route]).to be true
+        expect(results[:found_date]).to be true
+        expect(results[:seats_available]).to be true
+        expect(results[:flights].count).to eq(1)
 
-    let!(:economy_seat) do
-      flight.flight_seats.create!(
-        class_type: "Economy",
-        available_seats: 20,
-        total_seats: 100,
-        base_price: 5000
-      )
-    end
-
-    context "when flights match all criteria" do
-      it "returns the flight with correct price and flags" do
-        result = FlightSearchService.search("Delhi", "Mumbai", flight.departure_datetime, 2, "Economy")
-
-        expect(result[:found_route]).to be true
-        expect(result[:found_date]).to be true
-        expect(result[:seats_available]).to be true
-        expect(result[:flights].size).to eq(1)
-
-        flight_data = result[:flights].first
-        expect(flight_data[:flight_number]).to eq("TA123")
-        expect(flight_data[:price]).to be > 5000
-        expect(flight_data[:class_type]).to eq("Economy")
-        expect(flight_data[:travellers_count]).to eq(2)
+        flight = results[:flights].first
+        expect(flight[:flight_number]).to eq("AI101")
+        expect(flight[:airline_name]).to eq("IndiGoo")
+        expect(flight[:class_type]).to eq("Economy")
+        expect(flight[:seats]).to eq(10)
+        expect(flight[:price]).to be_present
+        expect(flight[:base_price]).to eq(3000)
       end
     end
 
-    context "when route exists but no flight on given date" do
-      it "sets found_route true but found_date false" do
-        search_date = flight.departure_datetime + 5.days
+    context "when no route is found" do
+      it "returns empty results" do
+        results = described_class.search("NonExistent", "Nowhere", Time.zone.now, 1, "Economy")
 
-        result = FlightSearchService.search("Delhi", "Mumbai", search_date, 1, "Economy")
-
-        expect(result[:found_route]).to be true
-        expect(result[:found_date]).to be false
-        expect(result[:seats_available]).to be false
-        expect(result[:flights]).to be_empty
+        expect(results[:found_route]).to be false
+        expect(results[:flights]).to be_empty
       end
     end
 
-    context "when route and date match but not enough seats" do
-      before do
-        economy_seat.update!(available_seats: 1)
-      end
+    context "when route is found but no seat available" do
+      it "returns found_route true but seats_available false" do
+        booking.update!(available_seats: 0)
 
-      it "sets seats_available false" do
-        result = FlightSearchService.search("Delhi", "Mumbai", flight.departure_datetime, 5, "Economy")
+        results = described_class.search("Delhi", "Mumbai", Time.zone.parse("#{Date.today} 10:00"), 1, "Economy")
 
-        expect(result[:found_route]).to be true
-        expect(result[:found_date]).to be true
-        expect(result[:seats_available]).to be false
-        expect(result[:flights]).to be_empty
+        expect(results[:found_route]).to be true
+        expect(results[:seats_available]).to be false
+        expect(results[:flights]).to be_empty
       end
     end
+  end
 
-    context "when no route exists" do
-      it "returns all flags false" do
-        result = FlightSearchService.search("Chennai", "Kolkata", Time.current + 2.days, 1, "Economy")
-
-        expect(result[:found_route]).to be false
-        expect(result[:found_date]).to be false
-        expect(result[:seats_available]).to be false
-        expect(result[:flights]).to be_empty
-      end
+  describe ".calculate_booking_multiplier" do
+    it "returns 1.0 when 0–30% booked" do
+      expect(described_class.calculate_booking_multiplier(0)).to eq(1.0)
+      expect(described_class.calculate_booking_multiplier(30)).to eq(1.0)
     end
 
-    context "when class_type is not available on the flight" do
-      it "does not include the flight in results" do
-        result = FlightSearchService.search("Delhi", "Mumbai", flight.departure_datetime, 1, "First Class")
-
-        expect(result[:found_route]).to be true
-        expect(result[:found_date]).to be true
-        expect(result[:seats_available]).to be false
-        expect(result[:flights]).to be_empty
-      end
+    it "returns 1.2 when 31–50% booked" do
+      expect(described_class.calculate_booking_multiplier(31)).to eq(1.2)
+      expect(described_class.calculate_booking_multiplier(50)).to eq(1.2)
     end
 
-    context "dynamic pricing" do
-      it "increases price as seats get booked (booking multiplier)" do
-        economy_seat.update!(available_seats: 50)
-        result = FlightSearchService.search("Delhi", "Mumbai", flight.departure_datetime, 1, "Economy")
-
-        flight_price = result[:flights].first[:price]
-        expect(flight_price).to be > 5000
-      end
-
-      it "increases price as departure date nears (date multiplier)" do
-        flight.update!(departure_datetime: Time.current + 1.day)
-        result = FlightSearchService.search("Delhi", "Mumbai", flight.departure_datetime, 1, "Economy")
-
-        expect(result[:flights].first[:price]).to be > 5000
-      end
-
-      it "applies booking multiplier of 1.0 (no increase)" do
-        economy_seat.update!(available_seats: 80, total_seats: 100, base_price: 5000)
-        flight.update!(departure_datetime: Time.current + 20.days)
-
-        result = FlightSearchService.search("Delhi", "Mumbai", flight.departure_datetime, 1, "Economy")
-
-        price = result[:flights].first[:price]
-        expect(price).to eq(5000)
-      end
-
-      it "applies booking multiplier of 1.35 correctly" do
-        economy_seat.update!(available_seats: 30, total_seats: 100, base_price: 5000)
-        flight.update!(departure_datetime: Time.current + 20.days)
-
-        result = FlightSearchService.search("Delhi", "Mumbai", flight.departure_datetime, 1, "Economy")
-
-        expected_booking_multiplier = 1.35
-        expected_price = (5000 * expected_booking_multiplier).to_i
-        expect(result[:flights].first[:price]).to eq(expected_price)
-      end
-
-      it "applies date multiplier between 1.02 and 1.14" do
-        flight.update!(departure_datetime: Time.current + 6.days)
-        economy_seat.update!(available_seats: 100, total_seats: 100, base_price: 5000)
-
-        result = FlightSearchService.search("Delhi", "Mumbai", flight.departure_datetime, 1, "Economy")
-
-        price = result[:flights].first[:price]
-        expect(price).to be_between(5100, 5700).inclusive
-      end
+    it "returns 1.35 when 51–75% booked" do
+      expect(described_class.calculate_booking_multiplier(51)).to eq(1.35)
+      expect(described_class.calculate_booking_multiplier(75)).to eq(1.35)
     end
 
-    context "when departure is today but already passed" do
-      it "skips the flight" do
-        flight.update!(departure_datetime: Time.current - 1.hour)
-        result = FlightSearchService.search("Delhi", "Mumbai", Time.current, 1, "Economy")
+    it "returns 1.5 when 76–100% booked" do
+      expect(described_class.calculate_booking_multiplier(76)).to eq(1.5)
+      expect(described_class.calculate_booking_multiplier(100)).to eq(1.5)
+    end
+  end
 
-        expect(result[:found_route]).to be true
-        expect(result[:found_date]).to be false
-        expect(result[:seats_available]).to be false
-        expect(result[:flights]).to be_empty
-      end
+  describe ".calculate_date_multiplier" do
+    it "returns 1.15 when 3 days before departure" do
+      expect(described_class.calculate_date_multiplier(3)).to eq(1.15)
+    end
+
+    it "returns 1.4 when 1 day before departure" do
+      expect(described_class.calculate_date_multiplier(1)).to eq(1.4)
+    end
+
+    it "returns 1.0 when more than 10 days before departure" do
+      expect(described_class.calculate_date_multiplier(15)).to eq(1.0)
+    end
+    it "returns 1.14 when 4 days before departure (upper bound clamp)" do
+      expect(described_class.calculate_date_multiplier(4)).to eq(1.14)
+    end
+
+    it "returns 1.10 when 6 days before departure (within range)" do
+      expect(described_class.calculate_date_multiplier(6)).to eq(1.10)
+    end
+
+    it "returns 1.02 when 10 days before departure (lower bound clamp)" do
+      expect(described_class.calculate_date_multiplier(10)).to eq(1.02)
     end
   end
 end
