@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2025_07_16_182828) do
+ActiveRecord::Schema[8.0].define(version: 2025_07_22_053305) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -21,30 +21,50 @@ ActiveRecord::Schema[8.0].define(version: 2025_07_16_182828) do
     t.index ["name"], name: "index_airlines_on_name", unique: true
   end
 
+  create_table "bookings", force: :cascade do |t|
+    t.bigint "flight_schedule_id", null: false
+    t.date "flight_date", null: false
+    t.string "class_type", null: false
+    t.integer "available_seats", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["flight_schedule_id"], name: "index_bookings_on_flight_schedule_id"
+  end
+
+  create_table "flight_routes", force: :cascade do |t|
+    t.string "flight_number", null: false
+    t.string "airline_name", null: false
+    t.string "source", null: false
+    t.string "destination", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+  end
+
+  create_table "flight_schedules", force: :cascade do |t|
+    t.bigint "flight_route_id", null: false
+    t.time "departure_time", null: false
+    t.time "arrival_time", null: false
+    t.integer "days_of_week", null: false, array: true
+    t.date "start_date", null: false
+    t.date "end_date"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.boolean "recurring", default: false, null: false
+    t.index ["flight_route_id"], name: "index_flight_schedules_on_flight_route_id"
+  end
+
   create_table "flight_seats", force: :cascade do |t|
-    t.bigint "flight_id", null: false
+    t.bigint "flight_schedule_id", null: false
     t.string "class_type", null: false
     t.integer "total_seats", null: false
-    t.integer "available_seats", null: false
     t.integer "base_price", null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
-    t.index ["flight_id"], name: "index_flight_seats_on_flight_id"
+    t.index ["flight_schedule_id"], name: "index_flight_seats_on_flight_schedule_id"
   end
 
-  create_table "flights", force: :cascade do |t|
-    t.string "flight_number", null: false
-    t.bigint "airline_id", null: false
-    t.string "source", null: false
-    t.string "destination", null: false
-    t.datetime "departure_datetime", null: false
-    t.datetime "arrival_datetime", null: false
-    t.datetime "created_at", null: false
-    t.datetime "updated_at", null: false
-    t.index ["airline_id"], name: "index_flights_on_airline_id"
-    t.index ["flight_number", "departure_datetime"], name: "index_flights_on_flight_number_and_departure_datetime"
-  end
-
-  add_foreign_key "flight_seats", "flights"
-  add_foreign_key "flights", "airlines"
+  add_foreign_key "bookings", "flight_schedules"
+  add_foreign_key "flight_routes", "airlines", column: "airline_name", primary_key: "name"
+  add_foreign_key "flight_schedules", "flight_routes"
+  add_foreign_key "flight_seats", "flight_schedules"
 end
