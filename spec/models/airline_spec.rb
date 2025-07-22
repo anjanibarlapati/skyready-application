@@ -2,7 +2,7 @@ require 'rails_helper'
 
 RSpec.describe Airline, type: :model do
   describe 'associations' do
-    it { should have_many(:flights).dependent(:destroy) }
+    it { should have_many(:flight_routes).with_foreign_key(:airline_name).dependent(:destroy) }
   end
 
   describe 'validations' do
@@ -14,6 +14,12 @@ RSpec.describe Airline, type: :model do
 
       expect(duplicate).not_to be_valid
       expect(duplicate.errors[:name]).to include("has already been taken")
+    end
+  end
+
+  describe 'primary key' do
+    it 'uses name as the primary key' do
+      expect(described_class.primary_key).to eq('name')
     end
   end
 end
