@@ -1,7 +1,9 @@
 class FlightSeat < ApplicationRecord
-  belongs_to :flight
+  belongs_to :flight_schedule
 
-  validates :class_type, presence: true, inclusion: { in: [ "Economy", "First Class", "Second Class" ] }
-  validates :total_seats, :available_seats, :base_price, presence: true
-  validates :available_seats, numericality: { greater_than_or_equal_to: 0 }
+  CLASS_TYPES = [ "Economy", "Second Class", "First Class" ].freeze
+
+  validates :class_type, presence: true, inclusion: { in: CLASS_TYPES }
+  validates :total_seats, presence: true, numericality: { only_integer: true, greater_than_or_equal_to: 0 }
+  validates :base_price, presence: true, numericality: { only_integer: true, greater_than_or_equal_to: 0 }
 end
