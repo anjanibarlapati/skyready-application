@@ -3,6 +3,7 @@ default: &default
   encoding: unicode
   pool: 5
   username: <%= ENV.fetch("PG_USERNAME") %>
+  password: <%= ENV.fetch("PG_PASSWORD") %>
   host: <%= ENV.fetch("PG_HOST") %>
   port: 5432
 
