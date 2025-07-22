@@ -48,7 +48,7 @@ RSpec.describe "Api::V1::FlightsSearchController", type: :request do
       it "returns 400 with appropriate error message" do
         post base_path, params: valid_params.merge(destination: "Delhi")
         expect(response).to have_http_status(:bad_request)
-        expect(JSON.parse(response.body)["message"]).to eq("Source and destination cannot be same")
+        expect(JSON.parse(response.body)["message"]).to eq("Source and destination cannot be the same")
       end
     end
 
@@ -64,7 +64,7 @@ RSpec.describe "Api::V1::FlightsSearchController", type: :request do
       it "returns 422 with appropriate error message" do
         post base_path, params: valid_params.merge(travellers_count: 10)
         expect(response).to have_http_status(:unprocessable_entity)
-        expect(JSON.parse(response.body)["message"]).to eq("Travellers count should be in between 1 to 9")
+        expect(JSON.parse(response.body)["message"]).to eq("Travellers count must be between 1 to 9")
       end
     end
 
@@ -119,7 +119,7 @@ RSpec.describe "Api::V1::FlightsSearchController", type: :request do
 
         post base_path, params: valid_params
         expect(response).to have_http_status(:internal_server_error)
-        expect(JSON.parse(response.body)["message"]).to eq("Failed to retrieve flight data. Please try again later.")
+        expect(JSON.parse(response.body)["message"]).to eq("Something went wrong while searching flights. Please try again.")
       end
     end
   end
