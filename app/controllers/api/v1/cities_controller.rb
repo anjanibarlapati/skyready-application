@@ -2,8 +2,8 @@ module Api
   module V1
     class CitiesController < Api::BaseController
       def index
-        from_cities = Flight.distinct.pluck(:source)
-        to_cities = Flight.distinct.pluck(:destination)
+        from_cities = FlightRoute.distinct.pluck(:source)
+        to_cities = FlightRoute.distinct.pluck(:destination)
 
         unique_cities = (from_cities + to_cities).uniq.sort
 
