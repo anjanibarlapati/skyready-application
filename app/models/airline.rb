@@ -1,4 +1,7 @@
 class Airline < ApplicationRecord
-  has_many :flights, dependent: :destroy
+  self.primary_key = "name"
+
+  has_many :flight_routes, foreign_key: :airline_name, dependent: :destroy
+
   validates :name, presence: true, uniqueness: true
 end
