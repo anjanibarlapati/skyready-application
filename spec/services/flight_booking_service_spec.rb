@@ -20,7 +20,9 @@ RSpec.describe FlightBookingService, type: :service do
     )
   end
   let(:booking_date) { Date.today }
-  let(:departure_datetime) { DateTime.parse("#{booking_date} 10:00:00") }
+  let(:departure_datetime) do
+    Time.zone.local(booking_date.year, booking_date.month, booking_date.day, 10, 0, 0)
+    end
   let!(:booking) do
     Booking.create!(
       flight_schedule: schedule,
