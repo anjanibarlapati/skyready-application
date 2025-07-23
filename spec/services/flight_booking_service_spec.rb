@@ -30,38 +30,52 @@ RSpec.describe FlightBookingService, type: :service do
     )
   end
 
+  before { seat }
+
   describe ".book_seats" do
-    before { seat }
-    it "books seats when available" do
-      result = described_class.book_seats(flight.flight_number, departure_datetime, "Economy", 3)
-      expect(result).to eq(true)
-      expect(booking.reload.available_seats).to eq(7)
-    end
-    it "does not book if not enough seats" do
-    result = described_class.book_seats(flight.flight_number, departure_datetime, "Economy", 20)
-    expect(result).to eq(false)
-    expect(booking.reload.available_seats).to eq(10)
+    context "when seats are available" do
+      it "books seats successfully and updates available seats" do
+        result = described_class.book_seats(flight.flight_number, departure_datetime, "Economy", 3)
+        expect(result).to eq(true)
+        expect(booking.reload.available_seats).to eq(7)
+      end
     end
 
-    it "does not book if flight does not exist" do
-    result = described_class.book_seats("INVALID", departure_datetime, "Economy", 1)
-    expect(result).to eq(false)
+    context "when requested seats exceed available seats" do
+      it "does not book and returns false" do
+        result = described_class.book_seats(flight.flight_number, departure_datetime, "Economy", 20)
+        expect(result).to eq(false)
+        expect(booking.reload.available_seats).to eq(10)
+      end
     end
 
-    it "does not book if class_type does not exist" do
-    result = described_class.book_seats(flight.flight_number, departure_datetime, "First Class", 1)
-    expect(result).to eq(false)
+    context "when flight does not exist" do
+      it "returns false" do
+        result = described_class.book_seats("INVALID", departure_datetime, "Economy", 1)
+        expect(result).to eq(false)
+      end
     end
 
-    it "does not book if travellers_count is zero or negative" do
-    result = described_class.book_seats(flight.flight_number, departure_datetime, "Economy", 0)
-    expect(result).to eq(false)
+    context "when class_type does not exist for the schedule" do
+      it "returns false" do
+        result = described_class.book_seats(flight.flight_number, departure_datetime, "First Class", 1)
+        expect(result).to eq(false)
+      end
     end
 
-    it "does not book if booking does not exist for date/class" do
-    booking.destroy
-    result = described_class.book_seats(flight.flight_number, departure_datetime, "Economy", 1)
-    expect(result).to eq(false)
+    context "when travellers_count is zero or negative" do
+      it "returns false" do
+        result = described_class.book_seats(flight.flight_number, departure_datetime, "Economy", 0)
+        expect(result).to eq(false)
+      end
+    end
+
+    context "when booking does not exist for the date and class" do
+      it "returns false" do
+        booking.destroy
+        result = described_class.book_seats(flight.flight_number, departure_datetime, "Economy", 1)
+        expect(result).to eq(false)
+      end
     end
   end
 end

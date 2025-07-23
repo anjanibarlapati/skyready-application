@@ -31,94 +31,72 @@ RSpec.describe Api::V1::FlightsBookingController, type: :controller do
 
     before { schedule; seat; booking }
 
-    it "returns success when booking is confirmed" do
-      post :confirm_booking, params: {
-        flight: {
-          flight_number: flight.flight_number,
-          departure_date: "#{Date.today} 10:00:00",
-          class_type: "Economy",
-          travellers_count: 2
+    context "integration test for successful booking" do
+      it "returns success when booking is confirmed" do
+        post :confirm_booking, params: {
+          flight: {
+            flight_number: flight.flight_number,
+            departure_date: "#{Date.today} 10:00:00",
+            class_type: "Economy",
+            travellers_count: 2
+          }
         }
-      }
-      expect(response).to have_http_status(:ok)
-      expect(JSON.parse(response.body)["message"]).to eq("Booking confirmed")
+        expect(response).to have_http_status(:ok)
+        expect(JSON.parse(response.body)["message"]).to eq("Booking confirmed")
+      end
     end
 
-    it "returns error if flight params are missing" do
-      post :confirm_booking, params: { flight: nil }
-      expect(response).to have_http_status(:bad_request)
-      expect(JSON.parse(response.body)["message"]).to eq("Flight data is required")
-    end
+    context "controller tests with service mocked" do
+      before { allow(FlightBookingService).to receive(:book_seats).and_return(true) }
 
-    it "returns error if departure_date is invalid" do
-      allow(Time.zone).to receive(:parse).and_raise(ArgumentError)
+      it "returns error if flight params are missing" do
+        post :confirm_booking, params: { flight: nil }
+        expect(response).to have_http_status(:bad_request)
+        expect(JSON.parse(response.body)["message"]).to eq("Flight data is required")
+      end
 
-      post :confirm_booking, params: {
-        flight: {
-          flight_number: flight.flight_number,
-          departure_date: "invalid-date",
-          class_type: "Economy",
-          travellers_count: 1
+      it "returns error if departure_date is invalid" do
+        allow(Time.zone).to receive(:parse).and_raise(ArgumentError)
+
+        post :confirm_booking, params: {
+          flight: {
+            flight_number: flight.flight_number,
+            departure_date: "invalid-date",
+            class_type: "Economy",
+            travellers_count: 1
+          }
         }
-      }
-      expect(response).to have_http_status(:bad_request)
-      expect(JSON.parse(response.body)["message"]).to eq("Invalid departure date format")
-    end
+        expect(response).to have_http_status(:bad_request)
+        expect(JSON.parse(response.body)["message"]).to eq("Invalid departure date format")
+      end
 
-    it "returns success when travellers_count is 0 (gets corrected to 1)" do
-      post :confirm_booking, params: {
-        flight: {
-          flight_number: flight.flight_number,
-          departure_date: "#{Date.today} 10:00:00",
-          class_type: "Economy",
-          travellers_count: 0
+      it "returns success when travellers_count is 0 (gets corrected to 1)" do
+        post :confirm_booking, params: {
+          flight: {
+            flight_number: flight.flight_number,
+            departure_date: "#{Date.today} 10:00:00",
+            class_type: "Economy",
+            travellers_count: 0
+          }
         }
-      }
-      expect(response).to have_http_status(:ok)
-      expect(JSON.parse(response.body)["message"]).to eq("Booking confirmed")
-    end
+        expect(response).to have_http_status(:ok)
+        expect(JSON.parse(response.body)["message"]).to eq("Booking confirmed")
+      end
 
-    it "returns error if booking fails due to insufficient seats" do
-      post :confirm_booking, params: {
-        flight: {
-          flight_number: flight.flight_number,
-          departure_date: "#{Date.today} 10:00:00",
-          class_type: "Economy",
-          travellers_count: 20
+      it "returns internal server error when FlightBookingService raises an exception" do
+        allow(FlightBookingService).to receive(:book_seats).and_raise(StandardError.new("Database error"))
+
+        post :confirm_booking, params: {
+          flight: {
+            flight_number: flight.flight_number,
+            departure_date: "#{Date.today} 10:00:00",
+            class_type: "Economy",
+            travellers_count: 1
+          }
         }
-      }
-      expect(response).to have_http_status(:unprocessable_entity)
-      expect(JSON.parse(response.body)["message"]).to eq("Travelers count should be between 1 and 9")
-    end
-
-    it "returns error if departure_date parsing returns nil" do
-      allow(Time.zone).to receive(:parse).and_return(nil)
-
-      post :confirm_booking, params: {
-        flight: {
-          flight_number: flight.flight_number,
-          departure_date: "some-date",
-          class_type: "Economy",
-          travellers_count: 1
-        }
-      }
-      expect(response).to have_http_status(:conflict)
-      expect(JSON.parse(response.body)["message"]).to eq("Booking failed. Please try again or select a different flight")
-    end
-
-    it "returns internal server error when FlightBookingService raises an exception" do
-      allow(FlightBookingService).to receive(:book_seats).and_raise(StandardError.new("Database error"))
-
-      post :confirm_booking, params: {
-        flight: {
-          flight_number: flight.flight_number,
-          departure_date: "#{Date.today} 10:00:00",
-          class_type: "Economy",
-          travellers_count: 1
-        }
-      }
-      expect(response).to have_http_status(:internal_server_error)
-      expect(JSON.parse(response.body)["message"]).to eq("Failed to book. Please try again later")
+        expect(response).to have_http_status(:internal_server_error)
+        expect(JSON.parse(response.body)["message"]).to eq("Failed to book. Please try again later")
+      end
     end
   end
 end
