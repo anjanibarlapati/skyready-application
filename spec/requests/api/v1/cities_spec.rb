@@ -3,7 +3,7 @@ require 'rails_helper'
 RSpec.describe "Api::V1::Cities", type: :request do
   describe "GET /api/v1/cities" do
     before do
-      [Booking, FlightSeat, FlightSchedule, FlightRoute, Airline].each(&:delete_all)
+      [ Booking, FlightSeat, FlightSchedule, FlightRoute, Airline ].each(&:delete_all)
     end
 
     it "returns an empty array if there are no routes" do
