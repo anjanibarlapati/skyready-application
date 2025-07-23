@@ -1,10 +1,10 @@
 class FlightRoute < ApplicationRecord
-  belongs_to :airline, foreign_key: :airline_name, primary_key: :name
+  belongs_to :airline
+  has_many :flights, dependent: :destroy
 
-  validates :flight_number, :airline_name, :source, :destination, presence: true
-
-  validates :flight_number, uniqueness: {
+  validates :source, :destination, presence: true
+  validates :airline_id, uniqueness: {
     scope: [ :source, :destination ],
-    message: "with this source and destination already exists"
+    message: "already has a route between this source and destination"
   }
 end
