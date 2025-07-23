@@ -1,33 +1,41 @@
 class FlightSearchService
-  def self.search(source, destination, departure_datetime, travellers_count, class_type)
-    departure_date = departure_datetime.to_date
+  def self.search(source, destination, departure_date, travellers_count, class_type)
     now = Time.current
 
     flights = []
     found_route = false
     found_date = false
     seats_available = false
+    found_class_type = false
 
     routes = FlightRoute.where("LOWER(source) = ? AND LOWER(destination) = ?", source.downcase, destination.downcase)
     found_route = routes.exists?
     return empty_result unless found_route
 
 
-    recurring = FlightSchedule
-                  .where(flight_route: routes, recurring: true)
-                  .where("start_date <= ?", departure_date)
-                  .where("end_date IS NULL OR end_date >= ?", departure_date)
-                  .where("? = ANY(days_of_week)", departure_date.wday)
+    flights_scope = Flight.where(flight_route_id: routes.select(:id))
+    schedules_scope = FlightSchedule.where(flight_id: flights_scope.select(:id))
 
-    one_time = FlightSchedule
-                 .where(flight_route: routes, recurring: false)
+    recurring = schedules_scope
+      .where(recurring: true)
+      .where("start_date <= ?", departure_date)
+      .where("end_date IS NULL OR end_date >= ?", departure_date)
+      .joins(:flight_schedule_days)
+      .where(flight_schedule_days: { day_of_week: departure_date.wday })
 
-    valid_schedules = FlightSchedule
+    one_time = schedules_scope
+      .where(recurring: false)
+
+    valid_schedules = schedules_scope
                         .where(id: recurring.select(:id))
                         .or(one_time)
-                        .includes(:flight_route, :bookings)
+                        .includes(:flight_seats, :bookings, flight: :flight_route)
 
     valid_schedules.each do |schedule|
+      seat = schedule.flight_seats.find { |fs| fs.class_type.to_s.strip.downcase == class_type.strip.downcase }
+      found_class_type ||= seat.present?
+      next unless seat
+
       if departure_date == Date.current
         flight_time = Time.zone.parse("#{departure_date} #{schedule.departure_time}")
         next if flight_time <= now
@@ -38,12 +46,10 @@ class FlightSearchService
           b.class_type.to_s.strip.downcase == class_type.strip.downcase
       end
 
-      if bookings.empty?
-        next
-      end
+      found_date ||= bookings.any?
+      next if bookings.empty?
 
       booking = bookings.first
-      found_date = true
 
       if booking.available_seats < travellers_count
         next
@@ -51,22 +57,22 @@ class FlightSearchService
 
       seats_available = true
 
-      price, base_price = calculate_final_price(booking, departure_datetime)
-
-      if price.nil?
-        next
-      end
-
       departure_dt = Time.zone.parse("#{departure_date} #{schedule.departure_time}")
       arrival_dt   = Time.zone.parse("#{departure_date} #{schedule.arrival_time}")
       arrival_dt += 1.day if arrival_dt < departure_dt
       date_diff = (arrival_dt.to_date - departure_dt.to_date).to_i
 
+      price, base_price = calculate_final_price(booking, departure_dt)
+      next if price.nil?
+
+      flight_route = schedule.flight.flight_route
+      airline = flight_route.airline
+
       flights << {
-        flight_number: schedule.flight_route.flight_number,
-        airline_name: schedule.flight_route.airline_name,
-        source: schedule.flight_route.source,
-        destination: schedule.flight_route.destination,
+        flight_number: schedule.flight.flight_number,
+        airline_name: airline.name,
+        source: flight_route.source,
+        destination: flight_route.destination,
         departure_date: departure_dt.strftime("%Y-%m-%d"),
         departure_time: departure_dt.strftime("%H:%M"),
         arrival_date: arrival_dt.strftime("%Y-%m-%d"),
@@ -84,7 +90,8 @@ class FlightSearchService
       flights: flights,
       found_route: found_route,
       found_date: found_date,
-      seats_available: seats_available
+      seats_available: seats_available,
+      found_class_type: found_class_type
     }
   end
 
@@ -92,10 +99,8 @@ class FlightSearchService
 
   def self.empty_result
     {
-      flights: [],
       found_route: false,
-      found_date: false,
-      seats_available: false
+      flights: []
     }
   end
 
