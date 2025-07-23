@@ -5,7 +5,7 @@ on:
   push:
     branches: 
       - main
-      - update-db-schema
+      - update/fetch-cities
 
 jobs:
   scan_ruby:
