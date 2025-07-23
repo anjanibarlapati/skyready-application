@@ -1,61 +1,103 @@
 require 'rails_helper'
 
 RSpec.describe FlightSchedule, type: :model do
-  describe "associations" do
-    it { should belong_to(:flight_route) }
-    it { should have_many(:bookings).dependent(:destroy) }
-    it { should have_many(:flight_seats).dependent(:destroy) }
+  let(:airline) { Airline.create!(name: "TestAir") }
+  let(:flight_route) { FlightRoute.create!(airline: airline, source: "DEL", destination: "BOM") }
+  let(:flight) { Flight.create!(flight_number: "TA123", flight_route: flight_route) }
+
+  let(:valid_attributes) do
+    {
+      flight: flight,
+      departure_time: Time.zone.parse("10:00"),
+      arrival_time: Time.zone.parse("12:00"),
+      start_date: Date.today,
+      end_date: nil,
+      recurring: true
+    }
   end
+
+  subject { described_class.new(valid_attributes) }
 
   describe "validations" do
-    subject { build(:flight_schedule) }
-
-    it { should validate_presence_of(:departure_time) }
-    it { should validate_presence_of(:arrival_time) }
-    it { should validate_presence_of(:start_date) }
-
-    context "when recurring is true" do
-      it "validates presence of days_of_week" do
-        schedule = build(:flight_schedule, recurring: true, days_of_week: nil)
-        expect(schedule).not_to be_valid
-        expect(schedule.errors[:days_of_week]).to include("can't be blank")
-      end
+    it "is valid with all attributes" do
+      expect(subject).to be_valid
     end
 
-    context "custom validation: end_date_after_start_date" do
-      it "adds error if end_date is before start_date" do
-        schedule = build(:flight_schedule,
-                         start_date: Date.today,
-                         end_date: Date.yesterday)
-        expect(schedule).not_to be_valid
-        expect(schedule.errors[:end_date]).to include("must be after start_date")
-      end
-
-      it "passes if end_date is after start_date" do
-        schedule = build(:flight_schedule,
-                         start_date: Date.today,
-                         end_date: Date.tomorrow)
-        expect(schedule).to be_valid
-      end
+    it "is invalid without departure_time" do
+      subject.departure_time = nil
+      expect(subject).not_to be_valid
+      expect(subject.errors[:departure_time]).to include("can't be blank")
     end
 
-    context "custom validation: days_of_week_valid" do
-      it "adds error if days_of_week contains invalid values" do
-        schedule = build(:flight_schedule, days_of_week: [ 0, 1, 8 ])
-        expect(schedule).not_to be_valid
-        expect(schedule.errors[:days_of_week]).to include("must contain values between 0 (Sunday) and 6 (Saturday)")
-      end
+    it "is invalid without arrival_time" do
+      subject.arrival_time = nil
+      expect(subject).not_to be_valid
+      expect(subject.errors[:arrival_time]).to include("can't be blank")
+    end
 
-      it "passes if all days_of_week are valid" do
-        schedule = build(:flight_schedule, days_of_week: [ 0, 1, 2, 3, 4, 5, 6 ])
-        expect(schedule).to be_valid
-      end
+    it "is invalid without start_date" do
+      subject.start_date = nil
+      expect(subject).not_to be_valid
+      expect(subject.errors[:start_date]).to include("can't be blank")
+    end
+
+    it "is invalid if recurring is nil" do
+      subject.recurring = nil
+      expect(subject).not_to be_valid
+      expect(subject.errors[:recurring]).to include("is not included in the list")
+    end
+
+    it "is invalid if arrival_time is before departure_time" do
+      subject.departure_time = Time.zone.parse("12:00")
+      subject.arrival_time = Time.zone.parse("10:00")
+      expect(subject).not_to be_valid
+      expect(subject.errors[:arrival_time]).to include("must be after departure time")
+    end
+
+    it "is invalid if overlapping time slot exists" do
+      described_class.create!(valid_attributes)
+
+      overlapping = described_class.new(valid_attributes.merge(
+        departure_time: Time.zone.parse("11:00"),
+        arrival_time: Time.zone.parse("13:00")
+      ))
+
+      expect(overlapping).not_to be_valid
+      expect(overlapping.errors[:base]).to include("Flight schedule overlaps with an existing schedule for this flight")
+    end
+
+    it "is invalid with duplicate time + dates + flight" do
+      described_class.create!(valid_attributes)
+
+      duplicate = described_class.new(valid_attributes)
+
+      expect(duplicate).not_to be_valid
+      expect(duplicate.errors[:departure_time]).to include("with same time and dates already exists for this flight")
     end
   end
 
-  describe "valid factory" do
-    it "is valid with correct attributes" do
-      expect(build(:flight_schedule)).to be_valid
+  describe "associations" do
+    it "belongs to flight" do
+      assoc = described_class.reflect_on_association(:flight)
+      expect(assoc.macro).to eq(:belongs_to)
+    end
+
+    it "has many flight_schedule_days with dependent: :destroy" do
+      assoc = described_class.reflect_on_association(:flight_schedule_days)
+      expect(assoc.macro).to eq(:has_many)
+      expect(assoc.options[:dependent]).to eq(:destroy)
+    end
+
+    it "has many flight_seats with dependent: :destroy" do
+      assoc = described_class.reflect_on_association(:flight_seats)
+      expect(assoc.macro).to eq(:has_many)
+      expect(assoc.options[:dependent]).to eq(:destroy)
+    end
+
+    it "has many bookings with dependent: :destroy" do
+      assoc = described_class.reflect_on_association(:bookings)
+      expect(assoc.macro).to eq(:has_many)
+      expect(assoc.options[:dependent]).to eq(:destroy)
     end
   end
 end
