@@ -4,33 +4,35 @@ RSpec.describe FlightSearchService, type: :service do
   let(:airline) { create(:airline, name: "IndiGoo") }
 
   let(:flight_route) {
-    create(
-      :flight_route,
-      airline_name: airline.name,
-      flight_number: "AI101",
-      source: "Delhi",
-      destination: "Mumbai"
-    )
+    create(:flight_route, airline: airline, source: "Delhi", destination: "Mumbai")
   }
 
-  let(:future_date) { Date.today + 1 }
+  let(:flight) {
+    create(:flight, flight_route: flight_route, flight_number: "AI101")
+  }
+
+  let(:departure_date) { Date.current + 1 }
 
   let(:flight_schedule) {
-    create(
-      :flight_schedule,
-      flight_route: flight_route,
+    create(:flight_schedule,
+      flight: flight,
       recurring: true,
-      start_date: future_date - 5,
-      end_date: future_date + 5,
-      days_of_week: [ future_date.wday ],
+      start_date: departure_date - 5,
+      end_date: departure_date + 5,
       departure_time: "10:00",
       arrival_time: "12:00"
     )
   }
 
-  let(:flight_seat) {
-    create(
-      :flight_seat,
+  let!(:schedule_day) {
+    create(:flight_schedule_day,
+      flight_schedule: flight_schedule,
+      day_of_week: departure_date.wday
+    )
+  }
+
+  let!(:flight_seat) {
+    create(:flight_seat,
       flight_schedule: flight_schedule,
       class_type: "Economy",
       total_seats: 100,
@@ -39,10 +41,9 @@ RSpec.describe FlightSearchService, type: :service do
   }
 
   let!(:booking) {
-    create(
-      :booking,
+    create(:booking,
       flight_schedule: flight_schedule,
-      flight_date: future_date,
+      flight_date: departure_date,
       class_type: "Economy",
       available_seats: 10
     )
@@ -51,27 +52,27 @@ RSpec.describe FlightSearchService, type: :service do
   describe ".search" do
     context "when valid inputs are provided" do
       it "returns matching flights" do
-        flight_seat
-        results = described_class.search("Delhi", "Mumbai", Time.zone.parse("#{future_date} 10:00"), 1, "Economy")
+        results = described_class.search("Delhi", "Mumbai", departure_date, 1, "Economy")
 
         expect(results[:found_route]).to be true
+        expect(results[:found_class_type]).to be true
         expect(results[:found_date]).to be true
         expect(results[:seats_available]).to be true
         expect(results[:flights].count).to eq(1)
 
-        flight = results[:flights].first
-        expect(flight[:flight_number]).to eq("AI101")
-        expect(flight[:airline_name]).to eq("IndiGoo")
-        expect(flight[:class_type]).to eq("Economy")
-        expect(flight[:seats]).to eq(10)
-        expect(flight[:price]).to be_present
-        expect(flight[:base_price]).to eq(3000)
+        flight_result = results[:flights].first
+        expect(flight_result[:flight_number]).to eq("AI101")
+        expect(flight_result[:airline_name]).to eq("IndiGoo")
+        expect(flight_result[:class_type]).to eq("Economy")
+        expect(flight_result[:seats]).to eq(10)
+        expect(flight_result[:base_price]).to eq(3000)
+        expect(flight_result[:price]).to be > 3000
       end
     end
 
     context "when no route is found" do
       it "returns empty results" do
-        results = described_class.search("NonExistent", "Nowhere", Time.zone.now, 1, "Economy")
+        results = described_class.search("Nowhere", "Imaginary", departure_date, 1, "Economy")
 
         expect(results[:found_route]).to be false
         expect(results[:flights]).to be_empty
@@ -82,9 +83,11 @@ RSpec.describe FlightSearchService, type: :service do
       it "returns found_route true but seats_available false" do
         booking.update!(available_seats: 0)
 
-        results = described_class.search("Delhi", "Mumbai", Time.zone.parse("#{Date.today} 10:00"), 1, "Economy")
+        results = described_class.search("Delhi", "Mumbai", departure_date, 1, "Economy")
 
         expect(results[:found_route]).to be true
+        expect(results[:found_class_type]).to be true
+        expect(results[:found_date]).to be true
         expect(results[:seats_available]).to be false
         expect(results[:flights]).to be_empty
       end
@@ -114,27 +117,20 @@ RSpec.describe FlightSearchService, type: :service do
   end
 
   describe ".calculate_date_multiplier" do
-    it "returns 1.15 when 3 days before departure" do
+    it "returns correct values for near departure dates" do
       expect(described_class.calculate_date_multiplier(3)).to eq(1.15)
-    end
-
-    it "returns 1.4 when 1 day before departure" do
       expect(described_class.calculate_date_multiplier(1)).to eq(1.4)
+      expect(described_class.calculate_date_multiplier(0)).to eq(1.4)
     end
 
-    it "returns 1.0 when more than 10 days before departure" do
-      expect(described_class.calculate_date_multiplier(15)).to eq(1.0)
-    end
-    it "returns 1.14 when 4 days before departure (upper bound clamp)" do
+    it "returns clamped values for mid-range dates" do
       expect(described_class.calculate_date_multiplier(4)).to eq(1.14)
-    end
-
-    it "returns 1.10 when 6 days before departure (within range)" do
       expect(described_class.calculate_date_multiplier(6)).to eq(1.10)
+      expect(described_class.calculate_date_multiplier(10)).to eq(1.02)
     end
 
-    it "returns 1.02 when 10 days before departure (lower bound clamp)" do
-      expect(described_class.calculate_date_multiplier(10)).to eq(1.02)
+    it "returns 1.0 when more than 10 days before" do
+      expect(described_class.calculate_date_multiplier(15)).to eq(1.0)
     end
   end
 end
