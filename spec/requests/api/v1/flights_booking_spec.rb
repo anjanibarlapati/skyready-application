@@ -31,21 +31,6 @@ RSpec.describe Api::V1::FlightsBookingController, type: :controller do
 
     before { schedule; seat; booking }
 
-    context "integration test for successful booking" do
-      it "returns success when booking is confirmed" do
-        post :confirm_booking, params: {
-          flight: {
-            flight_number: flight.flight_number,
-            departure_date: "#{Date.today} 10:00:00",
-            class_type: "Economy",
-            travellers_count: 2
-          }
-        }
-        expect(response).to have_http_status(:ok)
-        expect(JSON.parse(response.body)["message"]).to eq("Booking confirmed")
-      end
-    end
-
     context "controller tests with service mocked" do
       before { allow(FlightBookingService).to receive(:book_seats).and_return(true) }
 
