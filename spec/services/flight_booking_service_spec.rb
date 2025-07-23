@@ -59,7 +59,6 @@ RSpec.describe FlightBookingService, type: :service do
     end
 
     it "does not book if booking does not exist for date/class" do
-    # Remove the booking
     booking.destroy
     result = described_class.book_seats(flight.flight_number, departure_datetime, "Economy", 1)
     expect(result).to eq(false)
