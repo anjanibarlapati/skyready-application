@@ -28,7 +28,6 @@ class FlightSchedule < ApplicationRecord
     overlapping_schedules = FlightSchedule
       .where(flight_id: flight_id)
       .where(recurring: recurring)
-      .where(start_date: start_date)
       .where(
         "(departure_time < ? AND arrival_time > ?) OR
         (departure_time < ? AND arrival_time > ?) OR
