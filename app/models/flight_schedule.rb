@@ -1,26 +1,45 @@
 class FlightSchedule < ApplicationRecord
-  belongs_to :flight_route
+  belongs_to :flight
+  has_many :flight_schedule_days, dependent: :destroy
+  has_many :flight_seats, dependent: :destroy
   has_many :bookings, dependent: :destroy
 
-  has_many :flight_seats, dependent: :destroy
-
   validates :departure_time, :arrival_time, :start_date, presence: true
-  validates :days_of_week, presence: true, if: :recurring?
+  validates :recurring, inclusion: { in: [ true, false ] }
 
-  validate :end_date_after_start_date
-  validate :days_of_week_valid, if: -> { days_of_week.present? }
+  validates :departure_time, uniqueness: {
+    scope: [ :flight_id, :arrival_time, :start_date, :end_date ],
+    message: "with same time and dates already exists for this flight"
+  }
+
+  validate :departure_before_arrival
+  validate :no_overlapping_time_slots
 
   private
 
-  def end_date_after_start_date
-    if start_date.present? && end_date.present? && end_date < start_date
-      errors.add(:end_date, "must be after start_date")
-    end
+  def departure_before_arrival
+    return if departure_time.blank? || arrival_time.blank?
+    return if departure_time < arrival_time
+    errors.add(:arrival_time, "must be after departure time")
   end
+  def no_overlapping_time_slots
+    return if departure_time.blank? || arrival_time.blank?
 
-  def days_of_week_valid
-    unless days_of_week.all? { |day| (0..6).include?(day) }
-      errors.add(:days_of_week, "must contain values between 0 (Sunday) and 6 (Saturday)")
+    overlapping_schedules = FlightSchedule
+      .where(flight_id: flight_id)
+      .where(recurring: recurring)
+      .where(start_date: start_date)
+      .where(
+        "(departure_time < ? AND arrival_time > ?) OR
+        (departure_time < ? AND arrival_time > ?) OR
+        (departure_time >= ? AND arrival_time <= ?)",
+        arrival_time, arrival_time,
+        departure_time, departure_time,
+        departure_time, arrival_time
+      )
+
+    if overlapping_schedules.exists?
+      errors.add(:base, "Flight schedule overlaps with an existing schedule for this flight")
     end
   end
 end
