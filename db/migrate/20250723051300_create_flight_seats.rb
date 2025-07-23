@@ -1,4 +1,4 @@
-class CreateFlightSeats < ActiveRecord::Migration[7.1]
+class CreateFlightSeats < ActiveRecord::Migration[7.0]
   def change
     create_table :flight_seats do |t|
       t.references :flight_schedule, null: false, foreign_key: true
@@ -8,5 +8,7 @@ class CreateFlightSeats < ActiveRecord::Migration[7.1]
 
       t.timestamps
     end
+
+    add_index :flight_seats, [ :flight_schedule_id, :class_type ], unique: true
   end
 end
