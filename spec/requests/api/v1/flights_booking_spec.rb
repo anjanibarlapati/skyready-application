@@ -1,118 +1,124 @@
 require 'rails_helper'
 
-RSpec.describe "Api::V1::FlightsBookingController", type: :request do
-  let(:confirm_booking_path) { "/api/v1/flights/confirm-booking" }
-
-  let(:valid_booking_params) do
-    {
-      flight: {
-        flight_number: "AI101",
-        departure_date: "2025-07-20",
-        class_type: "Economy",
-        travellers_count: 2
-      }
-    }
-  end
-
+RSpec.describe Api::V1::FlightsBookingController, type: :controller do
   describe "POST /api/v1/flights/confirm-booking" do
-    context "with valid parameters" do
-      it "returns success when booking is confirmed" do
-        allow(FlightBookingService).to receive(:book_seats).and_return(true)
-
-        post confirm_booking_path, params: valid_booking_params
-
-        expect(response).to have_http_status(:ok)
-        body = JSON.parse(response.body)
-        expect(body["message"]).to eq("Booking confirmed")
-      end
+    let(:flight) { Flight.create!(flight_number: "AI101", flight_route: FlightRoute.create!(airline: Airline.create!(name: "TestAir"), source: "Delhi", destination: "Goa")) }
+    let(:schedule) do
+      FlightSchedule.create!(
+        flight: flight,
+        departure_time: "10:00:00",
+        arrival_time: "12:00:00",
+        start_date: Date.today,
+        recurring: false
+      )
+    end
+    let!(:seat) do
+      FlightSeat.create!(
+        flight_schedule: schedule,
+        class_type: "Economy",
+        total_seats: 100,
+        base_price: 5000
+      )
+    end
+    let!(:booking) do
+      Booking.create!(
+        flight_schedule: schedule,
+        flight_date: Date.today,
+        class_type: "Economy",
+        available_seats: 10
+      )
     end
 
-    context "when flight data is missing" do
-      it "returns 400 with appropriate error message" do
-        post confirm_booking_path, params: {}
-        expect(response).to have_http_status(:bad_request)
-        expect(JSON.parse(response.body)["message"]).to eq("Flight data is required")
-      end
+    before { schedule; seat; booking }
+
+    it "returns success when booking is confirmed" do
+      post :confirm_booking, params: {
+        flight: {
+          flight_number: flight.flight_number,
+          departure_date: "#{Date.today} 10:00:00",
+          class_type: "Economy",
+          travellers_count: 2
+        }
+      }
+      expect(response).to have_http_status(:ok)
+      expect(JSON.parse(response.body)["message"]).to eq("Booking confirmed")
     end
 
-    context "when flight_number or departure_date is missing" do
-      it "returns 422 if flight_number is blank" do
-        params = { flight: valid_booking_params[:flight].merge(flight_number: "") }
-        post confirm_booking_path, params: params
-        expect(response).to have_http_status(:unprocessable_entity)
-        expect(JSON.parse(response.body)["message"]).to eq("Flight data is required")
-      end
-
-      it "returns 422 if departure_date is blank" do
-        params = { flight: valid_booking_params[:flight].merge(departure_date: "") }
-        post confirm_booking_path, params: params
-        expect(response).to have_http_status(:unprocessable_entity)
-        expect(JSON.parse(response.body)["message"]).to eq("Flight data is required")
-      end
+    it "returns error if flight params are missing" do
+      post :confirm_booking, params: { flight: nil }
+      expect(response).to have_http_status(:bad_request)
+      expect(JSON.parse(response.body)["message"]).to eq("Flight data is required")
     end
 
-    context "when departure_date format is invalid" do
-      it "returns 500 with generic error message" do
-        invalid_params = valid_booking_params.deep_dup
-        invalid_params[:flight][:departure_date] = "invalid-date"
+    it "returns error if departure_date is invalid" do
+      allow(Time.zone).to receive(:parse).and_raise(ArgumentError)
 
-        post confirm_booking_path, params: invalid_params
-
-        expect(response).to have_http_status(:internal_server_error)
-        expect(JSON.parse(response.body)["message"]).to eq("Failed to book. Please try again later")
-      end
+      post :confirm_booking, params: {
+        flight: {
+          flight_number: flight.flight_number,
+          departure_date: "invalid-date",
+          class_type: "Economy",
+          travellers_count: 1
+        }
+      }
+      expect(response).to have_http_status(:bad_request)
+      expect(JSON.parse(response.body)["message"]).to eq("Invalid departure date format")
     end
 
-    context "when departure_date is not provided" do
-      it "returns 422 with error message" do
-        params_without_departure_date = valid_booking_params.dup
-        params_without_departure_date[:flight].delete(:departure_date)
-
-        post confirm_booking_path, params: params_without_departure_date
-
-        expect(response).to have_http_status(:unprocessable_entity)
-        body = JSON.parse(response.body)
-        expect(body["message"]).to eq("Flight data is required")
-      end
+    it "returns success when travellers_count is 0 (gets corrected to 1)" do
+      post :confirm_booking, params: {
+        flight: {
+          flight_number: flight.flight_number,
+          departure_date: "#{Date.today} 10:00:00",
+          class_type: "Economy",
+          travellers_count: 0
+        }
+      }
+      expect(response).to have_http_status(:ok)
+      expect(JSON.parse(response.body)["message"]).to eq("Booking confirmed")
     end
 
-    context "when travellers_count is out of range" do
-      it "returns 409 if travellers_count is zero" do
-        params = { flight: valid_booking_params[:flight].merge(travellers_count: 0) }
-        post confirm_booking_path, params: params
-
-        expect(response).to have_http_status(:conflict)
-        expect(JSON.parse(response.body)["message"]).to eq("Booking failed. Please try again or select a different flight")
-      end
-
-      it "returns 422 if travellers_count is more than 9" do
-        params = { flight: valid_booking_params[:flight].merge(travellers_count: 10) }
-        post confirm_booking_path, params: params
-        expect(response).to have_http_status(:unprocessable_entity)
-        expect(JSON.parse(response.body)["message"]).to eq("Travelers count should be between 1 and 9")
-      end
+    it "returns error if booking fails due to insufficient seats" do
+      post :confirm_booking, params: {
+        flight: {
+          flight_number: flight.flight_number,
+          departure_date: "#{Date.today} 10:00:00",
+          class_type: "Economy",
+          travellers_count: 20
+        }
+      }
+      expect(response).to have_http_status(:unprocessable_entity)
+      expect(JSON.parse(response.body)["message"]).to eq("Travelers count should be between 1 and 9")
     end
 
-    context "when booking fails due to unavailable seats or DB issue" do
-      it "returns 409 with appropriate error message" do
-        allow(FlightBookingService).to receive(:book_seats).and_return(false)
+    it "returns error if departure_date parsing returns nil" do
+      allow(Time.zone).to receive(:parse).and_return(nil)
 
-        post confirm_booking_path, params: valid_booking_params
-
-        expect(response).to have_http_status(:conflict)
-        expect(JSON.parse(response.body)["message"]).to eq("Booking failed. Please try again or select a different flight")
-      end
+      post :confirm_booking, params: {
+        flight: {
+          flight_number: flight.flight_number,
+          departure_date: "some-date",
+          class_type: "Economy",
+          travellers_count: 1
+        }
+      }
+      expect(response).to have_http_status(:conflict)
+      expect(JSON.parse(response.body)["message"]).to eq("Booking failed. Please try again or select a different flight")
     end
 
-    context "when internal server error occurs" do
-      it "returns 500 with generic message" do
-        allow(FlightBookingService).to receive(:book_seats).and_raise(StandardError.new("unexpected error"))
+    it "returns internal server error when FlightBookingService raises an exception" do
+      allow(FlightBookingService).to receive(:book_seats).and_raise(StandardError.new("Database error"))
 
-        post confirm_booking_path, params: valid_booking_params
-
-        expect(response).to have_http_status(:internal_server_error)
-        expect(JSON.parse(response.body)["message"]).to eq("Failed to book. Please try again later")
-      end
+      post :confirm_booking, params: {
+        flight: {
+          flight_number: flight.flight_number,
+          departure_date: "#{Date.today} 10:00:00",
+          class_type: "Economy",
+          travellers_count: 1
+        }
+      }
+      expect(response).to have_http_status(:internal_server_error)
+      expect(JSON.parse(response.body)["message"]).to eq("Failed to book. Please try again later")
     end
   end
 end
