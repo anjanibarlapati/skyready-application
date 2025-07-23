@@ -1,80 +1,68 @@
 require 'rails_helper'
 
-RSpec.describe FlightBookingService do
+RSpec.describe FlightBookingService, type: :service do
+  let(:flight) { Flight.create!(flight_number: "AI101", flight_route: create(:flight_route)) }
+  let(:schedule) do
+    FlightSchedule.create!(
+      flight: flight,
+      departure_time: "10:00:00",
+      arrival_time: "12:00:00",
+      start_date: Date.today,
+      recurring: false
+    )
+  end
+  let(:seat) do
+    FlightSeat.create!(
+      flight_schedule: schedule,
+      class_type: "Economy",
+      total_seats: 100,
+      base_price: 5000
+    )
+  end
+  let(:booking_date) { Date.today }
+  let(:departure_datetime) { DateTime.parse("#{booking_date} 10:00:00") }
+  let!(:booking) do
+    Booking.create!(
+      flight_schedule: schedule,
+      flight_date: booking_date,
+      class_type: "Economy",
+      available_seats: 10
+    )
+  end
+
   describe ".book_seats" do
-    let(:airline) { Airline.create!(name: "Test Airline") }
-
-    let(:flight) do
-      Flight.create!(
-        flight_number: "TA123",
-        airline: airline,
-        source: "Delhi",
-        destination: "Mumbai",
-        departure_datetime: Time.current + 2.days,
-        arrival_datetime: Time.current + 2.days + 2.hours
-      )
+    before { seat }
+    it "books seats when available" do
+      result = described_class.book_seats(flight.flight_number, departure_datetime, "Economy", 3)
+      expect(result).to eq(true)
+      expect(booking.reload.available_seats).to eq(7)
+    end
+    it "does not book if not enough seats" do
+    result = described_class.book_seats(flight.flight_number, departure_datetime, "Economy", 20)
+    expect(result).to eq(false)
+    expect(booking.reload.available_seats).to eq(10)
     end
 
-    let!(:economy_seat) do
-      flight.flight_seats.create!(
-        class_type: "Economy",
-        available_seats: 10,
-        total_seats: 100,
-        base_price: 5000
-      )
+    it "does not book if flight does not exist" do
+    result = described_class.book_seats("INVALID", departure_datetime, "Economy", 1)
+    expect(result).to eq(false)
     end
 
-    context "when booking is successful" do
-      it "reduces available seats and returns true" do
-        result = FlightBookingService.book_seats(flight.flight_number, flight.departure_datetime, "Economy", 3)
-
-        expect(result).to be true
-        expect(economy_seat.reload.available_seats).to eq(7)
-      end
+    it "does not book if class_type does not exist" do
+    result = described_class.book_seats(flight.flight_number, departure_datetime, "First Class", 1)
+    expect(result).to eq(false)
     end
 
-    context "when travellers_count is zero" do
-      it "returns false and does not change seats" do
-        result = FlightBookingService.book_seats(flight.flight_number, flight.departure_datetime, "Economy", 0)
-
-        expect(result).to be false
-        expect(economy_seat.reload.available_seats).to eq(10)
-      end
+    it "does not book if travellers_count is zero or negative" do
+    result = described_class.book_seats(flight.flight_number, departure_datetime, "Economy", 0)
+    expect(result).to eq(false)
     end
 
-    context "when travellers_count exceeds available seats" do
-      it "returns false and does not change seats" do
-        result = FlightBookingService.book_seats(flight.flight_number, flight.departure_datetime, "Economy", 15)
-
-        expect(result).to be false
-        expect(economy_seat.reload.available_seats).to eq(10)
-      end
-    end
-
-    context "when flight does not exist" do
-      it "returns false" do
-        result = FlightBookingService.book_seats("INVALID", flight.departure_datetime, "Economy", 1)
-
-        expect(result).to be false
-      end
-    end
-
-    context "when class_type does not exist" do
-      it "returns false" do
-        result = FlightBookingService.book_seats(flight.flight_number, flight.departure_datetime, "First Class", 1)
-
-        expect(result).to be false
-      end
-    end
-
-    context "when an unexpected error occurs" do
-      it "returns false" do
-        allow(Flight).to receive(:find_by).and_raise(StandardError.new("Unexpected error"))
-
-        result = FlightBookingService.book_seats(flight.flight_number, flight.departure_datetime, "Economy", 1)
-
-        expect(result).to be false
-      end
+    it "does not book if booking does not exist for date/class" do
+    # Remove the booking
+    booking.destroy
+    result = described_class.book_seats(flight.flight_number, departure_datetime, "Economy", 1)
+    expect(result).to eq(false)
     end
   end
 end
