@@ -9,9 +9,9 @@ module Api
         return render_error(error[:status], error[:message]) if error
 
         begin
-          parsed_date = Time.zone.parse(flight_params[:departure_date]).strftime("%Y-%m-%d %H:%M:%S")
+          parsed_date = Time.zone.parse(flight_params[:departure_date])
         rescue ArgumentError
-          return render_error(:bad_request, "Invalid departure date format")
+          return render_error(:bad_request, "Invalid departure date format") unless parsed_date
         end
 
         is_success = FlightBookingService.book_seats(
