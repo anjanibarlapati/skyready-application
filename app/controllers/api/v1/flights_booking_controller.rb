@@ -103,7 +103,7 @@ module Api
         travellers_count = 1 if travellers_count <= 0
 
         class_type = (data[:class_type] || "Economy").strip
-        valid_classes = ["Economy", "Second Class", "First Class"]
+        valid_classes = [ "Economy", "Second Class", "First Class" ]
         class_type = "Economy" unless valid_classes.include?(class_type)
 
         {

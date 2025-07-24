@@ -220,6 +220,5 @@ RSpec.describe FlightBookingService do
 
     expect(result).to be false
   end
-
   end
 end
