@@ -1,5 +1,5 @@
 class FlightBookingService
-  def self.book_seats(flight_number, departure_datetime, class_type, travellers_count)
+  def self.book_seats(flight_number, departure_datetime, class_type, travellers_count, use_transaction: true)
     return false if travellers_count <= 0
 
     flight = Flight.find_by(flight_number: flight_number)
@@ -14,7 +14,7 @@ class FlightBookingService
     seat = schedule.flight_seats.find_by(class_type: class_type)
     return false unless seat
 
-    Booking.transaction do
+    booking_logic = -> do
       booking = schedule.bookings.lock.find_by(
         flight_date: departure_date,
         class_type: class_type
@@ -27,10 +27,39 @@ class FlightBookingService
 
       booking.available_seats -= travellers_count
       booking.save!
-      return true
+      true
+    end
+
+    use_transaction ? Booking.transaction { booking_logic.call } : booking_logic.call
+  rescue => e
+    false
+  end
+
+  def self.book_round_trip_seats(departure_flight_number, departure_dt, return_flight_number, return_dt, class_type, travellers_count)
+    ActiveRecord::Base.transaction do
+      success_departure = book_seats(
+        departure_flight_number,
+        departure_dt,
+        class_type,
+        travellers_count,
+        use_transaction: false
+      )
+
+      raise ActiveRecord::Rollback, "Departure flight booking failed" unless success_departure
+
+      success_return = book_seats(
+        return_flight_number,
+        return_dt,
+        class_type,
+        travellers_count,
+        use_transaction: false
+      )
+
+      raise ActiveRecord::Rollback, "Return flight booking failed" unless success_return
+
+      true
     end
   rescue => e
-    Rails.logger.error "Booking failed: #{e.message}"
     false
   end
 end
