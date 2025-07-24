@@ -91,6 +91,7 @@ RSpec.describe FlightBookingService do
       )
       expect(result).to be false
     end
+
     it "returns false when an exception is raised during booking" do
       allow_any_instance_of(ActiveRecord::Relation).to receive(:find_by).and_raise(StandardError, "Simulated failure")
 
@@ -162,63 +163,64 @@ RSpec.describe FlightBookingService do
         available_seats: 10)
     end
 
-  it "returns false if departure booking fails" do
-    departure_booking.update!(available_seats: 0)
+    it "returns true when both departure and return flights are booked" do
+      result = described_class.book_round_trip_seats(
+        departure_flight.flight_number,
+        departure_dt,
+        return_flight.flight_number,
+        return_dt,
+        "Economy",
+        2
+      )
 
-    result = described_class.book_round_trip_seats(
-      departure_flight.flight_number,
-      departure_dt,
-      return_flight.flight_number,
-      return_dt,
-      "Economy",
-      2
-    )
+      expect(result).to be true
+      expect(departure_booking.reload.available_seats).to eq(8)
+      expect(return_booking.reload.available_seats).to eq(8)
+    end
 
-    expect(!!result).to be false
-  end
+    it "returns false if departure booking fails" do
+      departure_booking.update!(available_seats: 0)
 
-  it "returns false if return booking fails" do
-    return_booking.update!(available_seats: 1)
+      result = described_class.book_round_trip_seats(
+        departure_flight.flight_number,
+        departure_dt,
+        return_flight.flight_number,
+        return_dt,
+        "Economy",
+        2
+      )
 
-    result = described_class.book_round_trip_seats(
-      departure_flight.flight_number,
-      departure_dt,
-      return_flight.flight_number,
-      return_dt,
-      "Economy",
-      2
-    )
-      expect(result).to_not be_truthy
-  end
+      expect(result).to be_falsey
+    end
 
-  it "returns true when both departure and return flights are booked" do
-    result = described_class.book_round_trip_seats(
-      departure_flight.flight_number,
-      departure_dt,
-      return_flight.flight_number,
-      return_dt,
-      "Economy",
-      2
-    )
+    it "returns false if return booking fails" do
+      return_booking.update!(available_seats: 1)
 
-    expect(result).to be true
-    expect(departure_booking.reload.available_seats).to eq(8)
-    expect(return_booking.reload.available_seats).to eq(8)
-  end
+      result = described_class.book_round_trip_seats(
+        departure_flight.flight_number,
+        departure_dt,
+        return_flight.flight_number,
+        return_dt,
+        "Economy",
+        2
+      )
 
-  it "returns false if an unexpected exception is raised during round trip booking" do
-    allow(FlightBookingService).to receive(:book_seats).and_raise(StandardError.new("Simulated crash"))
+      expect(result).to be_falsey
+    end
 
-    result = described_class.book_round_trip_seats(
-      departure_flight.flight_number,
-      departure_dt,
-      return_flight.flight_number,
-      return_dt,
-      "Economy",
-      1
-    )
+    it "returns false if an unexpected exception is raised during round trip booking" do
+      allow(FlightBookingService).to receive(:book_seats).and_raise(StandardError.new("Simulated crash"))
 
-    expect(result).to be false
-  end
+      result = described_class.book_round_trip_seats(
+        departure_flight.flight_number,
+        departure_dt,
+        return_flight.flight_number,
+        return_dt,
+        "Economy",
+        1
+      )
+
+      expect(result).to be false
+    end
   end
 end
