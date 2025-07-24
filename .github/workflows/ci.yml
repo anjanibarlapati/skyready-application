@@ -5,7 +5,7 @@ on:
   push:
     branches: 
       - main
-      - update/flight-seat-booking
+      - round-trip-booking
 
 jobs:
   scan_ruby:
