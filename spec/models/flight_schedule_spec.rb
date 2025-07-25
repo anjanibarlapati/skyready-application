@@ -47,11 +47,12 @@ RSpec.describe FlightSchedule, type: :model do
       expect(subject.errors[:recurring]).to include("is not included in the list")
     end
 
-    it "is invalid if arrival_time is before departure_time" do
-      subject.departure_time = Time.zone.parse("12:00")
-      subject.arrival_time = Time.zone.parse("10:00")
-      expect(subject).not_to be_valid
-      expect(subject.errors[:arrival_time]).to include("must be after departure time")
+    it "is valid if arrival_time is before departure_time but end_date is next day" do
+      subject.departure_time = Time.zone.parse("22:00")
+      subject.arrival_time = Time.zone.parse("01:00")
+      subject.end_date = subject.start_date + 1
+
+      expect(subject).to be_valid
     end
 
     it "is invalid if overlapping time slot exists" do
