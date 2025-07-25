@@ -12,16 +12,10 @@ class FlightSchedule < ApplicationRecord
     message: "with same time and dates already exists for this flight"
   }
 
-  validate :departure_before_arrival
   validate :no_overlapping_time_slots
 
   private
 
-  def departure_before_arrival
-    return if departure_time.blank? || arrival_time.blank?
-    return if departure_time < arrival_time
-    errors.add(:arrival_time, "must be after departure time")
-  end
   def no_overlapping_time_slots
     return if departure_time.blank? || arrival_time.blank?
 
