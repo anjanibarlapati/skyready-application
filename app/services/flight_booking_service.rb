@@ -21,22 +21,37 @@ class FlightBookingService
       )
       return false unless booking
 
-      if booking.available_seats < travellers_count
-        return false
-      end
+      return false if booking.available_seats < travellers_count
 
       booking.available_seats -= travellers_count
       booking.save!
       true
     end
 
-    use_transaction ? Booking.transaction { booking_logic.call } : booking_logic.call
+    result = if use_transaction
+               Booking.transaction do
+                 booking = schedule.bookings.lock.find_by(
+                   flight_date: departure_date,
+                   class_type: class_type
+                 )
+                 next false unless booking
+                 next false if booking.available_seats < travellers_count
+
+                 booking.available_seats -= travellers_count
+                 booking.save!
+                 true
+               end
+    else
+               booking_logic.call
+    end
+
+    result
   rescue => e
     false
   end
 
   def self.book_round_trip_seats(departure_flight_number, departure_dt, return_flight_number, return_dt, class_type, travellers_count)
-    ActiveRecord::Base.transaction do
+    result = ActiveRecord::Base.transaction do
       success_departure = book_seats(
         departure_flight_number,
         departure_dt,
@@ -45,7 +60,9 @@ class FlightBookingService
         use_transaction: false
       )
 
-      raise ActiveRecord::Rollback, "Departure flight booking failed" unless success_departure
+      unless success_departure
+        raise ActiveRecord::Rollback, "Departure flight booking failed"
+      end
 
       success_return = book_seats(
         return_flight_number,
@@ -55,10 +72,14 @@ class FlightBookingService
         use_transaction: false
       )
 
-      raise ActiveRecord::Rollback, "Return flight booking failed" unless success_return
+      unless success_return
+        raise ActiveRecord::Rollback, "Return flight booking failed"
+      end
 
       true
     end
+
+    result == true
   rescue => e
     false
   end
