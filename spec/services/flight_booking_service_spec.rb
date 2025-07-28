@@ -53,8 +53,19 @@ RSpec.describe FlightBookingService do
 
       puts "\n4. Testing schedule lookup:"
       puts "   Looking for schedule with departure_time: '#{departure_time_processed}'"
-      found_schedule = found_flight.flight_schedules.find_by(departure_time: departure_time_processed)
+      found_schedule = found_flight.flight_schedules.where(
+        "TO_CHAR(departure_time, 'HH24:MI:SS') = ?",
+        departure_time_processed
+      ).first
       puts "   Schedule found: #{found_schedule.present?}"
+      all_schedules = found_flight.flight_schedules.all
+      puts "   All schedules: #{all_schedules.present?}"
+      puts "   Number of schedules: #{all_schedules.count}"
+
+      puts "   Schedule details:"
+      all_schedules.each_with_index do |schedule, index|
+        puts "     #{index + 1}. ID: #{schedule.id}, departure_time: '#{schedule.departure_time}' (#{schedule.departure_time.class})"
+      end
 
       if found_schedule
         puts "   Schedule ID: #{found_schedule.id}"
@@ -128,7 +139,10 @@ RSpec.describe FlightBookingService do
 
       departure_date = departure_datetime.to_date
       departure_time = departure_datetime.to_time.strftime("%H:%M:%S")
-      schedule_found = flight_found.flight_schedules.find_by(departure_time: departure_time)
+      schedule_found = flight_found.flight_schedules.where(
+        "TO_CHAR(departure_time, 'HH24:MI:SS') = ?",
+        departure_time
+      ).first
       return_early_3 = schedule_found.nil?
       puts "Should return early (schedule not found): #{return_early_3}"
       puts "departure_time used for lookup: '#{departure_time}'"
