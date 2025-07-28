@@ -33,7 +33,6 @@ RSpec.configure do |config|
   # Remove this line to enable support for ActiveRecord
   config.use_active_record = false
   config.include FactoryBot::Syntax::Methods
-
   Shoulda::Matchers.configure do |config|
     config.integrate do |with|
       with.test_framework :rspec

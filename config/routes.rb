@@ -9,6 +9,7 @@ Rails.application.routes.draw do
       resources :cities, only: [ :index ]
        post "flights/search", to: "flights_search#search"
        post "flights/confirm-booking", to: "flights_booking#confirm_booking"
+       post "flights/confirm-round-trip", to: "flights_booking#confirm_round_trip_booking"
     end
   end
 

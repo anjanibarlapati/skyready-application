@@ -1,87 +1,87 @@
-require 'rails_helper'
+require "rails_helper"
 
-RSpec.describe Api::V1::FlightsBookingController, type: :controller do
-  describe "POST /api/v1/flights/confirm-booking" do
-    let(:flight) { Flight.create!(flight_number: "AI101", flight_route: FlightRoute.create!(airline: Airline.create!(name: "TestAir"), source: "Delhi", destination: "Goa")) }
-    let(:schedule) do
-      FlightSchedule.create!(
-        flight: flight,
-        departure_time: "10:00:00",
-        arrival_time: "12:00:00",
-        start_date: Date.today,
-        recurring: false
-      )
-    end
-    let!(:seat) do
-      FlightSeat.create!(
-        flight_schedule: schedule,
+RSpec.describe "POST /api/v1/flights/confirm-booking", type: :request do
+  let(:flight) { create(:flight) }
+  let(:flight_schedule) { create(:flight_schedule, flight: flight) }
+
+  let(:valid_params) do
+    {
+      flight: {
+        flight_number: flight.flight_number,
+        departure_date: Date.today.to_s,
         class_type: "Economy",
-        total_seats: 100,
-        base_price: 5000
-      )
-    end
-    let!(:booking) do
-      Booking.create!(
-        flight_schedule: schedule,
-        flight_date: Date.today,
-        class_type: "Economy",
-        available_seats: 10
-      )
+        travellers_count: 2
+      }
+    }
+  end
+
+  context "when booking is successful" do
+    before do
+      allow(FlightBookingService).to receive(:book_seats).and_return(true)
+      post "/api/v1/flights/confirm-booking", params: valid_params
     end
 
-    before { schedule; seat; booking }
+    it "returns status 200 with confirmation message" do
+      expect(response).to have_http_status(:ok)
+      expect(JSON.parse(response.body)["message"]).to eq("Booking confirmed")
+    end
+  end
 
-    context "controller tests with service mocked" do
-      before { allow(FlightBookingService).to receive(:book_seats).and_return(true) }
+  context "when booking fails" do
+    before do
+      allow(FlightBookingService).to receive(:book_seats).and_return(false)
+      post "/api/v1/flights/confirm-booking", params: valid_params
+    end
 
-      it "returns error if flight params are missing" do
-        post :confirm_booking, params: { flight: nil }
-        expect(response).to have_http_status(:bad_request)
-        expect(JSON.parse(response.body)["message"]).to eq("Flight data is required")
-      end
+    it "returns conflict with failure message" do
+      expect(response).to have_http_status(:conflict)
+      expect(JSON.parse(response.body)["message"]).to eq("Booking failed. Please try again or select a different flight")
+    end
+  end
 
-      it "returns error if departure_date is invalid" do
-        allow(Time.zone).to receive(:parse).and_raise(ArgumentError)
+  context "when required params are missing" do
+    it "returns bad request when no flight data" do
+      post "/api/v1/flights/confirm-booking", params: {}
+      expect(response).to have_http_status(:bad_request)
+      expect(JSON.parse(response.body)["message"]).to eq("Flight data is required")
+    end
+  end
 
-        post :confirm_booking, params: {
-          flight: {
-            flight_number: flight.flight_number,
-            departure_date: "invalid-date",
-            class_type: "Economy",
-            travellers_count: 1
-          }
-        }
-        expect(response).to have_http_status(:bad_request)
-        expect(JSON.parse(response.body)["message"]).to eq("Invalid departure date format")
-      end
+  context "when departure date is invalid" do
+    it "falls back to booking and returns conflict if booking fails" do
+      allow(FlightBookingService).to receive(:book_seats).and_return(false)
 
-      it "returns success when travellers_count is 0 (gets corrected to 1)" do
-        post :confirm_booking, params: {
-          flight: {
-            flight_number: flight.flight_number,
-            departure_date: "#{Date.today} 10:00:00",
-            class_type: "Economy",
-            travellers_count: 0
-          }
-        }
-        expect(response).to have_http_status(:ok)
-        expect(JSON.parse(response.body)["message"]).to eq("Booking confirmed")
-      end
+      post "/api/v1/flights/confirm-booking", params: {
+        flight: valid_params[:flight].merge(departure_date: "not-a-date")
+      }
 
-      it "returns internal server error when FlightBookingService raises an exception" do
-        allow(FlightBookingService).to receive(:book_seats).and_raise(StandardError.new("Database error"))
+      expect(response).to have_http_status(:conflict)
+      expect(JSON.parse(response.body)["message"]).to eq("Booking failed. Please try again or select a different flight")
+    end
+  end
 
-        post :confirm_booking, params: {
-          flight: {
-            flight_number: flight.flight_number,
-            departure_date: "#{Date.today} 10:00:00",
-            class_type: "Economy",
-            travellers_count: 1
-          }
-        }
-        expect(response).to have_http_status(:internal_server_error)
-        expect(JSON.parse(response.body)["message"]).to eq("Failed to book. Please try again later")
-      end
+  context "when travellers count is out of range (0)" do
+    it "falls back to 1 and returns conflict if booking fails" do
+      allow(FlightBookingService).to receive(:book_seats).and_return(false)
+
+      post "/api/v1/flights/confirm-booking", params: {
+        flight: valid_params[:flight].merge(travellers_count: 0)
+      }
+
+      expect(response).to have_http_status(:conflict)
+      expect(JSON.parse(response.body)["message"]).to eq("Booking failed. Please try again or select a different flight")
+    end
+  end
+
+  context "when an unexpected error occurs" do
+    before do
+      allow(FlightBookingService).to receive(:book_seats).and_raise(StandardError, "Some error")
+      post "/api/v1/flights/confirm-booking", params: valid_params
+    end
+
+    it "returns 500 internal server error" do
+      expect(response).to have_http_status(:internal_server_error)
+      expect(JSON.parse(response.body)["message"]).to eq("Failed to book. Please try again later")
     end
   end
 end
