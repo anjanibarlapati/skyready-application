@@ -33,9 +33,6 @@ RSpec.configure do |config|
   # Remove this line to enable support for ActiveRecord
   config.use_active_record = false
   config.include FactoryBot::Syntax::Methods
-  config.before(:each) do
-    Time.zone = 'Asia/Kolkata'
-  end
   Shoulda::Matchers.configure do |config|
     config.integrate do |with|
       with.test_framework :rspec
