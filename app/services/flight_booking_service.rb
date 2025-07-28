@@ -8,7 +8,9 @@ class FlightBookingService
     departure_date = departure_datetime.to_date
     departure_time = departure_datetime.to_time.strftime("%H:%M:%S")
 
-    schedule = flight.flight_schedules.find_by(departure_time: departure_time)
+    schedule = flight.flight_schedules.find do |s|
+      s.departure_time.strftime("%H:%M:%S") == departure_time
+    end
     return false unless schedule
 
     seat = schedule.flight_seats.find_by(class_type: class_type)
