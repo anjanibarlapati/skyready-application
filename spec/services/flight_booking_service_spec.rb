@@ -2,17 +2,17 @@ require "rails_helper"
 
 RSpec.describe FlightBookingService do
   let(:flight) { create(:flight) }
-  let(:departure_time) { "10:00:00" }
-  let(:arrival_time) { "12:00:00" }
-  let(:departure_date) { Date.today + 1 }
-  let(:departure_datetime) { Time.zone.parse("#{departure_date} #{departure_time}") }
+  let(:departure_time_str) { "10:00:00" }
+  let(:arrival_time_str) { "12:00:00" }
+  let(:departure_date) { Time.zone.today + 1 }
+  let(:departure_datetime) { Time.zone.parse("#{departure_date} #{departure_time_str}") }
 
   describe ".book_seats" do
     let(:schedule) do
       create(:flight_schedule,
         flight: flight,
-        departure_time: departure_time,
-        arrival_time: arrival_time)
+        departure_time: departure_datetime,
+        arrival_time: Time.zone.parse("#{departure_date} #{arrival_time_str}"))
     end
 
     let!(:flight_seat) do
@@ -260,29 +260,29 @@ RSpec.describe FlightBookingService do
     let(:departure_flight) { create(:flight) }
     let(:return_flight) { create(:flight) }
 
-    let(:departure_time) { "10:00:00" }
-    let(:return_time) { "18:00:00" }
-    let(:departure_arrival_time) { "12:00:00" }
-    let(:return_arrival_time) { "20:00:00" }
+    let(:departure_time_str) { "10:00:00" }
+    let(:departure_arrival_str) { "12:00:00" }
+    let(:return_time_str) { "18:00:00" }
+    let(:return_arrival_str) { "20:00:00" }
 
-    let(:departure_date) { Date.today + 1 }
-    let(:return_date) { Date.today + 5 }
+    let(:departure_date) { Time.zone.today + 1 }
+    let(:return_date) { Time.zone.today + 5 }
 
-    let(:departure_dt) { Time.zone.parse("#{departure_date} #{departure_time}") }
-    let(:return_dt) { Time.zone.parse("#{return_date} #{return_time}") }
+    let(:departure_dt) { Time.zone.parse("#{departure_date} #{departure_time_str}") }
+    let(:return_dt) { Time.zone.parse("#{return_date} #{return_time_str}") }
 
     let(:departure_schedule) do
       create(:flight_schedule,
         flight: departure_flight,
-        departure_time: departure_time,
-        arrival_time: departure_arrival_time)
+        departure_time: departure_dt,
+        arrival_time: Time.zone.parse("#{departure_date} #{departure_arrival_str}"))
     end
 
     let(:return_schedule) do
       create(:flight_schedule,
         flight: return_flight,
-        departure_time: return_time,
-        arrival_time: return_arrival_time)
+        departure_time: return_dt,
+        arrival_time: Time.zone.parse("#{return_date} #{return_arrival_str}"))
     end
 
     let!(:departure_seat) do
