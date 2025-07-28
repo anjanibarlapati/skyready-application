@@ -29,6 +29,156 @@ RSpec.describe FlightBookingService do
         available_seats: 10)
     end
 
+    it "DEBUG: step by step service execution" do
+      puts "\n=== COMPREHENSIVE DEBUG ==="
+      puts "Rails.env: #{Rails.env}"
+      puts "Time.zone: #{Time.zone}"
+      puts "ActiveRecord adapter: #{ActiveRecord::Base.connection.adapter_name}"
+
+      puts "\n1. Testing travellers_count validation:"
+      result_zero = described_class.book_seats(flight.flight_number, departure_datetime, "Economy", 0)
+      puts "   Result with 0 travellers: #{result_zero} (should be false)"
+
+      puts "\n2. Testing flight lookup:"
+      puts "   flight.flight_number: '#{flight.flight_number}'"
+      found_flight = Flight.find_by(flight_number: flight.flight_number)
+      puts "   Flight found: #{found_flight.present?}"
+
+      puts "\n3. Testing date/time processing:"
+      departure_date_processed = departure_datetime.to_date
+      departure_time_processed = departure_datetime.to_time.strftime("%H:%M:%S")
+      puts "   departure_datetime: #{departure_datetime}"
+      puts "   departure_date_processed: #{departure_date_processed}"
+      puts "   departure_time_processed: '#{departure_time_processed}'"
+
+      puts "\n4. Testing schedule lookup:"
+      puts "   Looking for schedule with departure_time: '#{departure_time_processed}'"
+      found_schedule = found_flight.flight_schedules.find_by(departure_time: departure_time_processed)
+      puts "   Schedule found: #{found_schedule.present?}"
+
+      if found_schedule
+        puts "   Schedule ID: #{found_schedule.id}"
+        puts "   Schedule departure_time: '#{found_schedule.departure_time}'"
+        puts "   Schedule departure_time class: #{found_schedule.departure_time.class}"
+      else
+        puts "   Available schedules:"
+        found_flight.flight_schedules.each do |sch|
+          puts "     - ID: #{sch.id}, departure_time: '#{sch.departure_time}' (#{sch.departure_time.class})"
+        end
+      end
+
+      puts "\n5. Testing seat lookup:"
+      if found_schedule
+        found_seat = found_schedule.flight_seats.find_by(class_type: "Economy")
+        puts "   Seat found: #{found_seat.present?}"
+        if found_seat
+          puts "   Seat ID: #{found_seat.id}"
+        else
+          puts "   Available seats:"
+          found_schedule.flight_seats.each do |seat|
+            puts "     - ID: #{seat.id}, class_type: '#{seat.class_type}'"
+          end
+        end
+      end
+
+       puts "\n6. Testing booking lookup:"
+      if found_schedule
+        found_booking = found_schedule.bookings.find_by(
+          flight_date: departure_date_processed,
+          class_type: "Economy"
+        )
+        puts "   Booking found: #{found_booking.present?}"
+        if found_booking
+          puts "   Booking ID: #{found_booking.id}"
+          puts "   Available seats: #{found_booking.available_seats}"
+          puts "   Flight date: #{found_booking.flight_date}"
+          puts "   Class type: '#{found_booking.class_type}'"
+        else
+          puts "   Available bookings:"
+          found_schedule.bookings.each do |book|
+            puts "     - ID: #{book.id}, flight_date: #{book.flight_date}, class_type: '#{book.class_type}', seats: #{book.available_seats}"
+          end
+        end
+      end
+
+      puts "\n7. Testing actual service call:"
+      result = described_class.book_seats(
+        flight.flight_number,
+        departure_datetime,
+        "Economy",
+        3
+      )
+      puts "   Service result: #{result}"
+      puts "   Booking seats after call: #{booking.reload.available_seats}"
+
+      puts "=== END DEBUG ==="
+    end
+
+    it "DEBUG: manual service logic replication" do
+      puts "\n=== MANUAL LOGIC TEST ==="
+
+      travellers_count = 3
+
+      return_early_1 = travellers_count <= 0
+      puts "Should return early (travellers <= 0): #{return_early_1}"
+
+      flight_found = Flight.find_by(flight_number: flight.flight_number)
+      return_early_2 = flight_found.nil?
+      puts "Should return early (flight not found): #{return_early_2}"
+
+      departure_date = departure_datetime.to_date
+      departure_time = departure_datetime.to_time.strftime("%H:%M:%S")
+      schedule_found = flight_found.flight_schedules.find_by(departure_time: departure_time)
+      return_early_3 = schedule_found.nil?
+      puts "Should return early (schedule not found): #{return_early_3}"
+      puts "departure_time used for lookup: '#{departure_time}'"
+
+      if schedule_found
+        seat_found = schedule_found.flight_seats.find_by(class_type: "Economy")
+        return_early_4 = seat_found.nil?
+        puts "Should return early (seat not found): #{return_early_4}"
+      end
+
+      if schedule_found && !return_early_4
+        puts "Entering transaction logic..."
+
+        begin
+          result = Booking.transaction do
+            booking_found = schedule_found.bookings.lock.find_by(
+              flight_date: departure_date,
+              class_type: "Economy"
+            )
+            puts "Booking found in transaction: #{booking_found.present?}"
+
+            if booking_found.nil?
+              puts "Booking not found, returning false"
+              next false
+            end
+
+            if booking_found.available_seats < travellers_count
+              puts "Not enough seats (#{booking_found.available_seats} < #{travellers_count})"
+              next false
+            end
+
+            puts "Before update: #{booking_found.available_seats} seats"
+            booking_found.available_seats -= travellers_count
+            save_result = booking_found.save!
+            puts "Save result: #{save_result}"
+            puts "After update: #{booking_found.available_seats} seats"
+
+            true
+          end
+
+          puts "Transaction result: #{result}"
+        rescue => e
+          puts "Exception caught: #{e.class}: #{e.message}"
+          result = false
+        end
+      end
+
+      puts "=== END MANUAL LOGIC ==="
+    end
+
     it "returns true and books seats successfully" do
       result = described_class.book_seats(
         flight.flight_number,
