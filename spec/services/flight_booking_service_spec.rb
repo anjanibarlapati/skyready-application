@@ -53,17 +53,30 @@ RSpec.describe FlightBookingService do
 
       puts "\n4. Testing schedule lookup:"
       puts "   Looking for schedule with departure_time: '#{departure_time_processed}'"
-      # FIXED: Use PostgreSQL time formatting to match time portion only
-      found_schedule = found_flight.flight_schedules.where(
+
+      puts "   Approach 1 - Original find_by:"
+      found_schedule_1 = found_flight.flight_schedules.find_by(departure_time: departure_time_processed)
+      puts "   Schedule found (original): #{found_schedule_1.present?}"
+
+      puts "   Approach 2 - PostgreSQL TO_CHAR:"
+      found_schedule_2 = found_flight.flight_schedules.where(
         "TO_CHAR(departure_time, 'HH24:MI:SS') = ?",
         departure_time_processed
       ).first
-      puts "   Schedule found: #{found_schedule.present?}"
+      puts "   Schedule found (TO_CHAR): #{found_schedule_2.present?}"
+
+      puts "   Approach 3 - Ruby-side filtering:"
+      found_schedule_3 = found_flight.flight_schedules.find do |s|
+        s.departure_time.strftime("%H:%M:%S") == departure_time_processed
+      end
+      puts "   Schedule found (Ruby filter): #{found_schedule_3.present?}"
+
+      found_schedule = found_schedule_3 || found_schedule_2 || found_schedule_1
+      puts "   Final schedule found: #{found_schedule.present?}"
       all_schedules = found_flight.flight_schedules.all
       puts "   All schedules: #{all_schedules.present?}"
       puts "   Number of schedules: #{all_schedules.count}"
 
-      # To see the actual schedules with their details:
       puts "   Schedule details:"
       all_schedules.each_with_index do |schedule, index|
         puts "     #{index + 1}. ID: #{schedule.id}, departure_time: '#{schedule.departure_time}' (#{schedule.departure_time.class})"
@@ -141,11 +154,27 @@ RSpec.describe FlightBookingService do
 
       departure_date = departure_datetime.to_date
       departure_time = departure_datetime.to_time.strftime("%H:%M:%S")
-      # FIXED: Use PostgreSQL time formatting to match time portion only
-      schedule_found = flight_found.flight_schedules.where(
+
+      puts "Testing different schedule lookup approaches:"
+
+      puts "   Approach 1 - Original find_by:"
+      schedule_found_1 = flight_found.flight_schedules.find_by(departure_time: departure_time)
+      puts "   Result: #{schedule_found_1.present?}"
+
+      puts "   Approach 2 - PostgreSQL TO_CHAR:"
+      schedule_found_2 = flight_found.flight_schedules.where(
         "TO_CHAR(departure_time, 'HH24:MI:SS') = ?",
         departure_time
       ).first
+      puts "   Result: #{schedule_found_2.present?}"
+
+      puts "   Approach 3 - Ruby-side filtering:"
+      schedule_found_3 = flight_found.flight_schedules.find do |s|
+        s.departure_time.strftime("%H:%M:%S") == departure_time
+      end
+      puts "   Result: #{schedule_found_3.present?}"
+
+      schedule_found = schedule_found_3 || schedule_found_2 || schedule_found_1
       return_early_3 = schedule_found.nil?
       puts "Should return early (schedule not found): #{return_early_3}"
       puts "departure_time used for lookup: '#{departure_time}'"
