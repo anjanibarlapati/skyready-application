@@ -16,17 +16,18 @@ class FlightSearchService
     schedules_for_flights = FlightSchedule.where(flight_id: flights_for_routes.select(:id))
 
     valid_schedules = valid_schedules_for_date(schedules_for_flights, departure_date)
+    found_date = valid_schedules.any? do |schedule|
+      schedule.bookings.where(flight_date: departure_date).exists?
+    end
+
+    found_class_type = valid_schedules.any? do |schedule|
+      schedule.flight_seats.where("LOWER(class_type) = ?", class_type.strip.downcase).exists?
+    end
 
     valid_schedules.each do |schedule|
-      seat = find_seat(schedule, class_type)
-      found_class_type ||= seat.present?
-      next unless seat
-
       next if should_skip_schedule_departed_today?(schedule, departure_date, now)
 
       bookings = find_booking(schedule, departure_date, class_type)
-
-      found_date ||= bookings.any?
       next if bookings.empty?
 
       booking = bookings.first
