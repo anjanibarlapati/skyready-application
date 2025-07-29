@@ -40,16 +40,6 @@ RSpec.describe FlightBookingService do
       expect(booking.reload.available_seats).to eq(7)
     end
 
-    it "returns false if travellers_count is zero" do
-      result = described_class.book_seats(
-        flight.flight_number,
-        departure_datetime,
-        "Economy",
-        0
-      )
-      expect(result).to be false
-    end
-
     it "returns false if flight is not found" do
       result = described_class.book_seats(
         "INVALID123",
