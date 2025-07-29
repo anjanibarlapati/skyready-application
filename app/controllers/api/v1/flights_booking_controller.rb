@@ -1,7 +1,7 @@
 module Api
   module V1
     class FlightsBookingController < Api::BaseController
-      VALID_CLASSES = ["Economy", "Second Class", "First Class"].freeze
+      VALID_CLASSES = [ "Economy", "Second Class", "First Class" ].freeze
       DEFAULT_CLASS = "Economy".freeze
       MIN_TRAVELLERS = 1
       MAX_TRAVELLERS = 9
@@ -14,7 +14,7 @@ module Api
         return render_error(error[:status], error[:message]) if error
 
         parsed_date = parse_departure_date!(flight_params[:departure_date])
-        if(parsed_date.nil?)
+        if parsed_date.nil?
           return render_error(:bad_request, "Invalid departure date format")
         end
 
@@ -43,7 +43,7 @@ module Api
 
         departure_dt = parse_departure_date!(round_trip_params[:departure_date])
         return_dt    = parse_departure_date!(round_trip_params[:return_date])
-        if(departure_dt.nil? || return_dt.nil?)
+        if departure_dt.nil? || return_dt.nil?
           return render_error(:bad_request, "Invalid date format for departure or return date")
         end
 

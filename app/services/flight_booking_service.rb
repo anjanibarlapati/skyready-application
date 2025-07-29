@@ -1,6 +1,5 @@
 class FlightBookingService
   def self.book_seats(flight_number, departure_datetime, class_type, travellers_count, use_transaction: true)
-
     flight = Flight.find_by(flight_number: flight_number)
     return false unless flight
 

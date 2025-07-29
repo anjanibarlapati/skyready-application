@@ -1,7 +1,7 @@
 module Api
   module V1
     class FlightsSearchController < Api::BaseController
-      VALID_CLASSES = ["Economy", "Second Class", "First Class"].freeze
+      VALID_CLASSES = [ "Economy", "Second Class", "First Class" ].freeze
       MIN_TRAVELLERS = 1
       MAX_TRAVELLERS = 9
 
@@ -33,13 +33,13 @@ module Api
         source      = params[:source]&.strip
         destination = params[:destination]&.strip
         class_type  = parse_class_type(params[:class_type])
-        travellers_count = [params[:travellers_count].to_i, MIN_TRAVELLERS].max
+        travellers_count = [ params[:travellers_count].to_i, MIN_TRAVELLERS ].max
         departure_date   = parse_date(params[:departure_date])
 
         [ source, destination, class_type, travellers_count, departure_date ]
       end
 
-      
+
       def parse_date(input)
         return Date.today if input.blank?
         Date.parse(input) rescue nil

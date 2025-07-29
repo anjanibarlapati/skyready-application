@@ -105,9 +105,9 @@ class FlightSearchService
 
   def self.find_valid_routes(source, destination)
     routes = FlightRoute.where("LOWER(source) = ? AND LOWER(destination) = ?", source.downcase, destination.downcase)
-    return [nil, false] unless routes.exists?
+    return [ nil, false ] unless routes.exists?
 
-    [routes, true]
+    [ routes, true ]
   end
 
   def self.build_flight_result(schedule:, flight_route:, airline:, booking:, departure_dt:, arrival_dt:, date_diff:, price:, base_price:, travellers_count:, class_type:)
@@ -136,7 +136,7 @@ class FlightSearchService
     adjusted_arrival = arrival < departure ? arrival + 1.day : arrival
     date_diff = (adjusted_arrival.to_date - departure.to_date).to_i
 
-    [departure, adjusted_arrival, date_diff]
+    [ departure, adjusted_arrival, date_diff ]
   end
 
   def self.empty_result
