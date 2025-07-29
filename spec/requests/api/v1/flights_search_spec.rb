@@ -99,7 +99,7 @@ RSpec.describe "Api::V1::FlightsSearchController", type: :request do
 
         post base_path, params: valid_params.merge(class_type: "First Class")
         expect(response).to have_http_status(:conflict)
-        expect(parsed_response["message"]).to eq("Flights with first class are not available between the selected source and destination on selected date")
+        expect(parsed_response["message"]).to eq("No flights available on the selected date")
       end
     end
 
