@@ -55,8 +55,8 @@ RSpec.describe "POST /api/v1/flights/confirm-booking", type: :request do
         flight: valid_params[:flight].merge(departure_date: "not-a-date")
       }
 
-      expect(response).to have_http_status(:conflict)
-      expect(JSON.parse(response.body)["message"]).to eq("Booking failed. Please try again or select a different flight")
+      expect(response).to have_http_status(:bad_request)
+      expect(JSON.parse(response.body)["message"]).to eq("Invalid departure date format")
     end
   end
 

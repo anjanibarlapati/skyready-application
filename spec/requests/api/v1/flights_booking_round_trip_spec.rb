@@ -66,7 +66,7 @@ RSpec.describe "POST /api/v1/flights/confirm-round-trip", type: :request do
         data: valid_params[:data].merge(departure_date: "invalid", return_date: "still-wrong")
       }
       expect(response).to have_http_status(:bad_request)
-      expect(JSON.parse(response.body)["message"]).to eq("Invalid departure or/and return date formats")
+      expect(JSON.parse(response.body)["message"]).to eq("Invalid date format for departure or return date")
     end
   end
 

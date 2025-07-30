@@ -5,7 +5,7 @@ on:
   push:
     branches: 
       - main
-      - round-trip-booking
+      - refactor-code
 
 jobs:
   scan_ruby:
